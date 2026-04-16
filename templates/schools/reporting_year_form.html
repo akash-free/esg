@@ -1,0 +1,56 @@
+{% extends "superadmin/dashboard_base.html" %}
+
+{% block page_title %}{% if reporting_year %}Edit Reporting Year{% else %}Add Reporting Year{% endif %}{% endblock %}
+{% block nav_schools %}active{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <i class="fa-solid fa-{% if reporting_year %}edit{% else %}plus{% endif %} me-2"></i>
+                {% if reporting_year %}Edit Reporting Year{% else %}Add Reporting Year{% endif %}
+                <br>
+                <small class="text-muted">School: {{ school.school_name }}</small>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Year <span class="text-danger">*</span></label>
+                        <input type="text" name="year" class="form-control" 
+                               value="{{ reporting_year.year|default:'' }}" 
+                               placeholder="e.g., 2024-2025" required>
+                        <small class="text-muted">Format: YYYY-YYYY (e.g., 2024-2025)</small>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="draft" {% if reporting_year.status == 'draft' %}selected{% endif %}>Draft (Not started)</option>
+                            <option value="active" {% if reporting_year.status == 'active' %}selected{% endif %}>Active (Current year)</option>
+                            <option value="locked" {% if reporting_year.status == 'locked' %}selected{% endif %}>Locked (Completed)</option>
+                        </select>
+                        <small class="text-muted">
+                            <i class="fa-solid fa-info-circle"></i>
+                            Only one year can be active at a time.
+                        </small>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fa-solid fa-save"></i> {% if reporting_year %}Update{% else %}Create{% endif %}
+                        </button>
+                        <a href="{% url 'reporting_year_list' school.id %}" class="btn btn-secondary">
+                            <i class="fa-solid fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,303 @@
+{% extends "teacher/teacher_base.html" %}
+
+{% block page_title %}Teacher Dashboard{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block dashboard_content %}
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-{% if message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Welcome Section -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0">Teacher Dashboard</h4>
+        <p class="text-muted small">
+            <i class="fa-solid fa-user-graduate me-1"></i> {{ request.user.name }} | 
+            <i class="fa-solid fa-school me-1"></i> {{ school_name }}
+        </p>
+    </div>
+    <a href="{% url 'waste_entry_add' %}" class="btn btn-success">
+        <i class="fa-solid fa-plus-circle me-2"></i>Add Waste Entry
+    </a>
+</div>
+
+<!-- Quick Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="bg-success bg-opacity-10 rounded-circle p-3 d-inline-block mb-2">
+                    <i class="fa-solid fa-trash-can fa-2x text-success"></i>
+                </div>
+                <h2 class="mb-0">{{ total_entries|default:0 }}</h2>
+                <p class="text-muted small mb-0">Total Entries</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="bg-primary bg-opacity-10 rounded-circle p-3 d-inline-block mb-2">
+                    <i class="fa-solid fa-weight-hanging fa-2x text-primary"></i>
+                </div>
+                <h2 class="mb-0">{{ total_weight|floatformat:0|default:0 }} <small class="fs-6">kg</small></h2>
+                <p class="text-muted small mb-0">Total Waste</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="bg-info bg-opacity-10 rounded-circle p-3 d-inline-block mb-2">
+                    <i class="fa-solid fa-cloud fa-2x text-info"></i>
+                </div>
+                <h2 class="mb-0">{{ total_co2|floatformat:2|default:0 }} <small class="fs-6">kg</small></h2>
+                <p class="text-muted small mb-0">CO₂ Saved</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="bg-success bg-opacity-10 rounded-circle p-3 d-inline-block mb-2">
+                    <i class="fa-solid fa-tree fa-2x text-success"></i>
+                </div>
+                <h2 class="mb-0">{{ total_trees|floatformat:2|default:0 }}</h2>
+                <p class="text-muted small mb-0">Trees Saved</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How it works - Formula Explanation (CORRECTED) -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <i class="fa-solid fa-calculator me-2 text-success"></i>
+        <strong>How is Environmental Impact Calculated?</strong>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <!-- CO₂ Card -->
+            <div class="col-md-4 mb-3">
+                <div class="border rounded p-3 h-100 bg-light">
+                    <div class="text-center mb-2">
+                        <i class="fa-solid fa-cloud fa-2x text-info"></i>
+                    </div>
+                    <h6 class="text-center fw-bold"> CO₂ Saved</h6>
+                    <div class="small text-muted text-center mb-2">
+                        <code>Weight (kg) × CO₂ Factor</code>
+                    </div>
+                    <div class="small bg-white p-2 rounded">
+                        <strong>Example:</strong><br>
+                        25 kg Paper × 0.82 = <strong class="text-success">20.5 kg CO₂</strong>
+                    </div>
+                    <div class="small text-muted mt-2">
+                        <i class="fa-solid fa-info-circle"></i> Factor depends on waste type & treatment
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Water Card (CORRECTED) -->
+            <div class="col-md-4 mb-3">
+                <div class="border rounded p-3 h-100 bg-light">
+                    <div class="text-center mb-2">
+                        <i class="fa-solid fa-droplet fa-2x text-primary"></i>
+                    </div>
+                    <h6 class="text-center fw-bold"> Water Saved</h6>
+                    <div class="small text-muted text-center mb-2">
+                        <code>Weight (kg) × Water Factor (L/kg)</code>
+                    </div>
+                    <div class="small bg-white p-2 rounded">
+                        <strong>Example:</strong><br>
+                        25 kg Paper × 26.5 = <strong class="text-primary">662.5 Litres</strong>
+                    </div>
+                    <div class="small text-muted mt-2">
+                        <i class="fa-solid fa-info-circle"></i> 1 kg paper recycled saves 26.5 litres water
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Trees Card (CORRECTED) -->
+            <div class="col-md-4 mb-3">
+                <div class="border rounded p-3 h-100 bg-light">
+                    <div class="text-center mb-2">
+                        <i class="fa-solid fa-tree fa-2x text-success"></i>
+                    </div>
+                    <h6 class="text-center fw-bold"> Trees Saved</h6>
+                    <div class="small text-muted text-center mb-2">
+                        <code>Weight (kg) × Trees Factor (trees/kg)</code>
+                    </div>
+                    <div class="small bg-white p-2 rounded">
+                        <strong>Example:</strong><br>
+                        25 kg Paper × 0.024 = <strong class="text-success">0.6 Trees</strong>
+                    </div>
+                    <div class="small text-muted mt-2">
+                        <i class="fa-solid fa-info-circle"></i> 1 kg paper recycled saves 0.024 trees (1 tree = 41.7 kg paper)
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Factor Reference Table -->
+        <div class="mt-3 pt-2 border-top">
+            <div class="small fw-semibold mb-2"> Sample Factors (Paper Category):</div>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Sub-category</th>
+                            <th>Treatment</th>
+                            <th>CO₂ Factor<br>(kg CO₂/kg)</th>
+                            <th>Water Factor<br>(L/kg)</th>
+                            <th>Trees Factor<br>(trees/kg)</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Virgin Paper (Pine)</td>
+                                <td>Recycled</td>
+                                <td>0.92</td>
+                                <td>30</td>
+                                <td>0.022</td>
+                            </tr>
+                            <tr>
+                                <td>Recycled Paper</td>
+                                <td>Recycled</td>
+                                <td>0.65</td>
+                                <td>18</td>
+                                <td>0</td>
+                            </tr>
+                            <tr>
+                                <td>Bamboo Paper</td>
+                                <td>Recycled</td>
+                                <td>0.75</td>
+                                <td>20</td>
+                                <td>0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="small text-muted mt-2">
+                <i class="fa-solid fa-flask"></i> <strong>Source:</strong> IPCC 2019, GHG Protocol, India MoEFCC 2023
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Entries Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div>
+            <i class="fa-solid fa-clock me-2"></i>
+            <strong>Recent Waste Entries</strong>
+        </div>
+        <a href="{% url 'waste_entry_list' %}" class="btn btn-sm btn-outline-success">
+            <i class="fa-solid fa-list"></i> View All
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Weight</th>
+                    <th>Treatment</th>
+                    <th class="text-success">CO₂ Saved</th>
+                    <th class="text-primary">Water Saved</th>
+                    <th class="text-success">Trees Saved</th>
+                </thead>
+            <tbody>
+                {% for entry in recent_entries %}
+                <tr>
+                    <td class="small">{{ entry.entry_date|date:"d M Y" }}</td>
+                    <td>
+                        <span class="badge bg-success bg-opacity-10 text-success">
+                            {{ entry.waste_category|truncatechars:20 }}
+                        </span>
+                    </td>
+                    <td><strong>{{ entry.weight_kg }}</strong> kg</td>
+                    <td>{{ entry.get_treatment_method_display }}</td>
+                    <td class="text-success fw-semibold">{{ entry.co2e_kg|floatformat:2 }} kg</td>
+                    <td class="text-primary fw-semibold">{{ entry.water_saved_litres|floatformat:0 }} L</td>
+                    <td class="text-success fw-semibold">{{ entry.trees_equivalent|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-secondary">
+                        <i class="fa-solid fa-trash-can fa-3x mb-3 d-block"></i>
+                        <p>No waste entries yet.</p>
+                        <a href="{% url 'waste_entry_add' %}" class="btn btn-success btn-sm">
+                            <i class="fa-solid fa-plus-circle"></i> Add Your First Entry
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Equivalent Impact Section -->
+{% if total_co2 > 0 %}
+<div class="card border-0 shadow-sm mt-4">
+    <div class="card-header bg-white">
+        <i class="fa-solid fa-chart-line me-2 text-success"></i>
+        <strong>Your Environmental Impact (Equivalent To)</strong>
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-md-4 mb-3">
+                <div class="border rounded p-3">
+                    <i class="fa-solid fa-car fa-2x text-secondary mb-2"></i>
+                    <p class="mb-0">
+                        <strong>{{ car_equivalent|default:0 }}</strong> cars off the road for a day
+                    </p>
+                    <small class="text-muted">{{ total_co2|floatformat:0 }} kg CO₂ saved</small>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="border rounded p-3">
+                    <i class="fa-solid fa-shower fa-2x text-primary mb-2"></i>
+                    <p class="mb-0">
+                        <strong>{{ shower_equivalent|default:0 }}</strong> showers
+                    </p>
+                    <small class="text-muted">{{ total_water|floatformat:0 }} litres water saved</small>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="border rounded p-3">
+                    <i class="fa-solid fa-tree fa-2x text-success mb-2"></i>
+                    <p class="mb-0">
+                        <strong>{{ total_trees|floatformat:1 }}</strong> trees saved
+                    </p>
+                    <small class="text-muted">Each tree absorbs 22 kg CO₂ per year</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+    .hover-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .hover-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1) !important;
+    }
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+</style>
+
+{% endblock %}

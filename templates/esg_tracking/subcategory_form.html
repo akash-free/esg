@@ -1,0 +1,94 @@
+{% extends "superadmin/dashboard_base.html" %}
+
+{% block page_title %}{% if subcategory %}Edit Sub-Category{% else %}Add Sub-Category{% endif %}{% endblock %}
+{% block nav_esg %}active{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <i class="fa-solid fa-{% if subcategory %}edit{% else %}plus{% endif %} me-2"></i>
+                {% if subcategory %}Edit Sub-Category{% else %}Add New Sub-Category{% endif %}
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Parent Category <span class="text-danger">*</span></label>
+                        <select name="category" class="form-select" required>
+                            <option value="">Select Category</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}" {% if subcategory.category.id == cat.id %}selected{% endif %}>
+                                {{ cat.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Sub-Category Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" 
+                               value="{{ subcategory.name|default:'' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Description</label>
+                        <textarea name="description" class="form-control" rows="2">{{ subcategory.description|default:'' }}</textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold">Tree Type</label>
+                            <select name="tree_type" class="form-select">
+                                <option value="">— None —</option>
+                                <option value="pine" {% if subcategory.tree_type == 'pine' %}selected{% endif %}>Pine (Softwood)</option>
+                                <option value="spruce" {% if subcategory.tree_type == 'spruce' %}selected{% endif %}>Spruce (Softwood)</option>
+                                <option value="eucalyptus" {% if subcategory.tree_type == 'eucalyptus' %}selected{% endif %}>Eucalyptus (Hardwood)</option>
+                                <option value="acacia" {% if subcategory.tree_type == 'acacia' %}selected{% endif %}>Acacia (Hardwood)</option>
+                                <option value="mixed" {% if subcategory.tree_type == 'mixed' %}selected{% endif %}>Mixed</option>
+                                <option value="bamboo" {% if subcategory.tree_type == 'bamboo' %}selected{% endif %}>Bamboo (Grass)</option>
+                                <option value="none" {% if subcategory.tree_type == 'none' %}selected{% endif %}>None</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold">Growth Rate</label>
+                            <input type="text" name="growth_rate_years" class="form-control" 
+                                   value="{{ subcategory.growth_rate_years|default:'' }}" placeholder="e.g., 20-30 years">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold">CO₂ Absorption</label>
+                            <input type="number" name="co2_absorption" class="form-control" 
+                                   value="{{ subcategory.co2_absorption|default:'' }}" step="0.01" placeholder="kg/tree/year">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Display Order</label>
+                        <input type="number" name="order" class="form-control" 
+                               value="{{ subcategory.order|default:0 }}" style="width: 100px;">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input type="checkbox" name="is_active" class="form-check-input" 
+                                   id="is_active" {% if subcategory.is_active or not subcategory %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">Active</label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fa-solid fa-save"></i> {% if subcategory %}Update{% else %}Create{% endif %}
+                        </button>
+                        <a href="{% url 'esg_subcategory_list' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,384 @@
+{% extends "superadmin/dashboard_base.html" %}
+
+{% block page_title %}Dashboard{% endblock %}
+{% block nav_dashboard %}active bg-white bg-opacity-10 text-white{% endblock %}
+
+{% block dashboard_content %}
+
+<!-- ========== SCHOOL FILTER (NEW CODE) ========== -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        <form method="GET" action="{% url 'superadmin_dashboard' %}" class="row g-3 align-items-center">
+            <div class="col-auto">
+                <label class="fw-semibold mb-0">Filter by School:</label>
+            </div>
+            <div class="col-md-3">
+                <select name="school_id" class="form-select" onchange="this.form.submit()">
+                    <option value="all" {% if selected_school_id == 'all' %}selected{% endif %}>🏫 All Schools</option>
+                    {% for school in all_schools %}
+                    <option value="{{ school.id }}" {% if selected_school_id|stringformat:'s' == school.id|stringformat:'s' %}selected{% endif %}>
+                        {{ school.school_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                {% if selected_school %}
+                <span class="badge bg-success">
+                    <i class="fa-solid fa-filter"></i> Showing: {{ selected_school.school_name }}
+                </span>
+                {% else %}
+                <span class="badge bg-secondary">
+                    <i class="fa-solid fa-globe"></i> Showing: All Schools
+                </span>
+                {% endif %}
+            </div>
+            {% if selected_school_id != 'all' %}
+            <div class="col-auto">
+                <a href="{% url 'superadmin_dashboard' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fa-solid fa-times"></i> Clear Filter
+                </a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+<!-- ============================================= -->
+
+<!-- ========== 6 KPI CARDS ========== -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card card-hover border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="kpi-value">{{ total_generated|floatformat:0 }}</div>
+                        <div class="small text-secondary text-uppercase">Total Waste</div>
+                        <small class="text-muted">kg</small>
+                    </div>
+                    <div class="bg-success bg-opacity-10 rounded p-2">
+                        <i class="fa-solid fa-trash text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card card-hover border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="kpi-value">{{ total_diverted|floatformat:0 }}</div>
+                        <div class="small text-secondary text-uppercase">Diverted</div>
+                        <small class="text-muted">kg</small>
+                    </div>
+                    <div class="bg-info bg-opacity-10 rounded p-2">
+                        <i class="fa-solid fa-recycle text-info"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card card-hover border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="kpi-value">{{ diversion_rate|floatformat:1 }}%</div>
+                        <div class="small text-secondary text-uppercase">Diversion Rate</div>
+                    </div>
+                    <div class="bg-success bg-opacity-10 rounded p-2">
+                        <i class="fa-solid fa-chart-line text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card card-hover border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="kpi-value">{{ co2e_avoided|floatformat:3 }}</div>
+                        <div class="small text-secondary text-uppercase">CO₂e Avoided</div>
+                        <small class="text-muted">tonnes</small>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 rounded p-2">
+                        <i class="fa-solid fa-cloud text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card card-hover border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="kpi-value">{{ water_saved|floatformat:0 }}</div>
+                        <div class="small text-secondary text-uppercase">Water Saved</div>
+                        <small class="text-muted">litres</small>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 rounded p-2">
+                        <i class="fa-solid fa-droplet text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card card-hover border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="kpi-value">{{ trees_saved|floatformat:1 }}</div>
+                        <div class="small text-secondary text-uppercase">Trees Saved</div>
+                    </div>
+                    <div class="bg-success bg-opacity-10 rounded p-2">
+                        <i class="fa-solid fa-tree text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== QUICK ACTIONS ========== -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="section-title"><i class="fa-solid fa-bolt me-2"></i> Quick Actions</div>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <a href="/schools/" class="btn btn-outline-secondary w-100 py-3 quick-action-btn">
+            <i class="fa-solid fa-school d-block mb-1 fs-5"></i>
+            <small>Add School</small>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="/vendors/" class="btn btn-outline-secondary w-100 py-3 quick-action-btn">
+            <i class="fa-solid fa-recycle d-block mb-1 fs-5"></i>
+            <small>Add Recycler</small>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="/esg/factors/" class="btn btn-outline-secondary w-100 py-3 quick-action-btn">
+            <i class="fa-solid fa-leaf d-block mb-1 fs-5"></i>
+            <small>ESG Factors</small>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="{% url 'export_dashboard_pdf' %}?{{ request.GET.urlencode }}" class="btn btn-outline-danger w-100 py-3 quick-action-btn">
+            <i class="fa-solid fa-file-pdf d-block mb-1 fs-5"></i>
+            <small>Export PDF</small>
+        </a>
+    </div>
+</div>
+
+<!-- ========== CHARTS ========== -->
+<!-- <div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="section-title"><i class="fa-solid fa-chart-pie me-2"></i> Waste by Category</div>
+                <a href="{% url 'export_category_excel' %}?{{ request.GET.urlencode }}" 
+                class="btn btn-sm btn-success">
+                    <i class="fa-solid fa-file-excel me-1"></i> Export to Excel
+                </a>
+            </div>
+            <div class="card-body">
+                <canvas id="categoryChart" height="200"></canvas>
+                {% if not category_breakdown %}
+                <div class="text-center py-5 text-secondary">
+                    <i class="fa-solid fa-chart-simple fa-2x mb-2 d-block"></i>
+                    <small>No data yet. Add waste entries to see charts.</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                <div class="section-title"><i class="fa-solid fa-chart-line me-2"></i> Monthly Trend (Last 6 Months)</div>
+                <a href="{% url 'export_monthly_trend_excel' %}?{{ request.GET.urlencode }}" 
+                   class="btn btn-sm btn-success">
+                    <i class="fa-solid fa-file-excel me-1"></i> Export to Excel
+                </a>
+            </div>
+            <div class="card-body">
+                <canvas id="monthlyChart" height="200"></canvas>
+                {% if not monthly_data %}
+                <div class="text-center py-5 text-secondary">
+                    <i class="fa-solid fa-chart-line fa-2x mb-2 d-block"></i>
+                    <small>No monthly data available.</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div> -->
+<div class="row g-3 mb-4">
+    <!-- Waste by Category Card -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <div class="section-title mb-0"><i class="fa-solid fa-chart-pie me-2"></i> Waste by Category</div>
+                <a href="{% url 'export_category_excel' %}?{{ request.GET.urlencode }}" 
+                   class="btn btn-sm btn-success">
+                    <i class="fa-solid fa-file-excel me-1"></i> Export to Excel
+                </a>
+            </div>
+            <div class="card-body">
+                <canvas id="categoryChart" height="200"></canvas>
+                {% if not category_breakdown %}
+                <div class="text-center py-5 text-secondary">
+                    <i class="fa-solid fa-chart-simple fa-2x mb-2 d-block"></i>
+                    <small>No data yet. Add waste entries to see charts.</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Trend Card -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <div class="section-title mb-0"><i class="fa-solid fa-chart-line me-2"></i> Monthly Trend (Last 6 Months)</div>
+                <a href="{% url 'export_monthly_trend_excel' %}?{{ request.GET.urlencode }}" 
+                   class="btn btn-sm btn-success">
+                    <i class="fa-solid fa-file-excel me-1"></i> Export to Excel
+                </a>
+            </div>
+            <div class="card-body">
+                <canvas id="monthlyChart" height="200"></canvas>
+                {% if not monthly_data %}
+                <div class="text-center py-5 text-secondary">
+                    <i class="fa-solid fa-chart-line fa-2x mb-2 d-block"></i>
+                    <small>No monthly data available.</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== RECENT WASTE ENTRIES TABLE ========== -->
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="section-title"><i class="fa-solid fa-clock me-2"></i> Recent Waste Entries</div>
+    <a href="{% url 'export_waste_excel' %}?{{ request.GET.urlencode }}" 
+       class="btn btn-sm btn-success">
+        <i class="fa-solid fa-file-excel me-1"></i> Export to Excel
+    </a>
+</div>
+<div class="card border-0 shadow-sm mb-4">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>School</th>
+                    <th>Category</th>
+                    <th>Weight</th>
+                    <th>Treatment</th>
+                    <th>CO₂e</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in recent_entries %}
+                <tr>
+                    <td>{{ entry.entry_date|date:"d M Y" }}</td>
+                    <td>{{ entry.reporting_year.school.school_name|truncatechars:25 }}</td>
+                    <td>{{ entry.waste_category }}</td>
+                    <td>{{ entry.weight_kg }} kg</td>
+                    <td><span>{{ entry.get_treatment_method_display }}</span></td>
+                    <td>{% if entry.co2e_kg < 0 %}-{% endif %}{{ entry.co2e_kg|floatformat:2 }} kg</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-secondary">
+                        <i class="fa-solid fa-trash fa-2x mb-2 d-block"></i>
+                        <small>No waste entries yet.</small>
+                        <small class="d-block text-muted">Add waste entries through Django admin.</small>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ========== STATS SUMMARY ========== -->
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                <div class="section-title"><i class="fa-solid fa-building me-2"></i> Organisations</div>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tr><td class="ps-0">Total Schools</td><td class="fw-semibold">{{ total_schools }}</td></tr>
+                    <tr><td class="ps-0">Active Schools</td><td class="fw-semibold">{{ active_schools }}</td></tr>
+                    <tr><td class="ps-0">Total Recyclers</td><td class="fw-semibold">{{ total_recyclers }}</td></tr>
+                    <tr><td class="ps-0">Active Recyclers</td><td class="fw-semibold">{{ active_recyclers }}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                <div class="section-title"><i class="fa-solid fa-calendar me-2"></i> Platform Stats</div>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tr><td class="ps-0">Total Users</td><td class="fw-semibold">{{ total_users }}</td></tr>
+                    <tr><td class="ps-0">Total Reporting Years</td><td class="fw-semibold">{{ total_reporting_years }}</td></tr>
+                    <tr><td class="ps-0">Active Reporting Years</td><td class="fw-semibold">{{ active_reporting_years }}</td></tr>
+                    <tr><td class="ps-0">Total Waste Entries</td><td class="fw-semibold">{{ recent_entries|length }}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Pie Chart - Category Breakdown
+    {% if category_breakdown %}
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(categoryCtx, {
+        type: 'pie',
+        data: {
+            labels: [{% for cat in category_breakdown %}'{{ cat.waste_category|escapejs }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+            datasets: [{
+                data: [{% for cat in category_breakdown %}{{ cat.total_weight }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+                backgroundColor: ['#388e3c', '#2e7d32', '#4caf50', '#81c784', '#a5d6a7', '#c8e6c9'],
+                borderWidth: 0
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } }
+    });
+    {% endif %}
+    
+    // Bar Chart - Monthly Trend
+    {% if monthly_data %}
+    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+    new Chart(monthlyCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for m in monthly_data %}'{{ m.month|date:"M Y" }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+            datasets: [
+                { label: 'Generated (kg)', data: [{% for m in monthly_data %}{{ m.generated }}{% if not forloop.last %}, {% endif %}{% endfor %}], backgroundColor: '#ff9800' },
+                { label: 'Diverted (kg)', data: [{% for m in monthly_data %}{{ m.diverted }}{% if not forloop.last %}, {% endif %}{% endfor %}], backgroundColor: '#4caf50' }
+            ]
+        },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } } }
+    });
+    {% endif %}
+</script>
+{% endblock %}

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Principal Dashboard - {{ school.school_name }}</title>
+<style>
+    @page {
+        size: A4;
+        margin: 1.5cm 1.5cm 1.5cm 1.5cm;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        font-size: 11px;
+        color: #333;
+        background: #fff;
+    }
+
+    /* ===== HEADER ===== */
+    .header-table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #1b5e20;
+        margin-bottom: 6px;
+    }
+    .header-table td {
+        padding: 14px 18px;
+        vertical-align: middle;
+        color: #fff;
+    }
+    .header-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #fff;
+    }
+    .header-sub {
+        font-size: 10px;
+        color: #c8e6c9;
+        margin-top: 3px;
+    }
+    .header-right {
+        font-size: 10px;
+        text-align: right;
+        color: #c8e6c9;
+    }
+
+    /* ===== SCHOOL INFO BAR ===== */
+    .school-bar {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #2e7d32;
+        margin-bottom: 14px;
+    }
+    .school-bar td {
+        padding: 8px 18px;
+        color: #fff;
+        font-size: 10.5px;
+        vertical-align: middle;
+    }
+    .school-name {
+        font-size: 13px;
+        font-weight: bold;
+        color: #fff;
+    }
+    .school-meta {
+        font-size: 10px;
+        color: #c8e6c9;
+        margin-top: 2px;
+    }
+    .year-badge {
+        background: rgba(255,255,255,0.2);
+        padding: 4px 10px;
+        font-size: 10px;
+        color: #fff;
+        text-align: right;
+    }
+
+    /* ===== SECTION TITLE ===== */
+    .section-title {
+        font-size: 11px;
+        font-weight: bold;
+        color: #1b5e20;
+        border-bottom: 2px solid #4caf50;
+        padding-bottom: 4px;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* ===== KPI CARDS — 3 per row ===== */
+    .kpi-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 6px;
+        margin-bottom: 16px;
+    }
+    .kpi-cell {
+        width: 33.33%;
+        background: #f9fbe7;
+        border: 1px solid #dcedc8;
+        border-top: 3px solid #4caf50;
+        padding: 10px 12px;
+        vertical-align: top;
+    }
+    .kpi-value {
+        font-size: 22px;
+        font-weight: bold;
+        color: #1b5e20;
+        line-height: 1.1;
+    }
+    .kpi-label {
+        font-size: 9px;
+        color: #555;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-top: 2px;
+    }
+    .kpi-unit {
+        font-size: 9px;
+        color: #888;
+        margin-top: 1px;
+    }
+
+    /* ===== DATA TABLE ===== */
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 16px;
+        font-size: 10.5px;
+    }
+    .data-table thead tr {
+        background-color: #2e7d32;
+        color: #fff;
+    }
+    .data-table thead th {
+        padding: 7px 10px;
+        text-align: left;
+        font-weight: bold;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .data-table tbody tr:nth-child(even) {
+        background-color: #f1f8e9;
+    }
+    .data-table tbody tr:nth-child(odd) {
+        background-color: #fff;
+    }
+    .data-table tbody td {
+        padding: 6px 10px;
+        border-bottom: 1px solid #e0e0e0;
+        vertical-align: middle;
+    }
+
+    /* ===== FOOTER ===== */
+    .footer {
+        margin-top: 20px;
+        border-top: 1px solid #ccc;
+        padding-top: 8px;
+        font-size: 9px;
+        color: #888;
+        text-align: center;
+    }
+
+    .no-data {
+        text-align: center;
+        color: #aaa;
+        font-size: 10px;
+        padding: 16px;
+    }
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<table class="header-table">
+    <tr>
+        <td style="width: 65%;">
+            <span class="header-title">EVOLVU ESG Platform</span><br>
+            <span class="header-sub">Principal Dashboard Report</span>
+        </td>
+        <td class="header-right" style="width: 35%;">
+            Generated: {{ export_date|date:"d M Y, H:i" }}<br>
+            {% if active_year %}
+            Academic Year: {{ active_year.year }}
+            {% endif %}
+        </td>
+    </tr>
+</table>
+
+<!-- ===== SCHOOL INFO BAR ===== -->
+<table class="school-bar">
+    <tr>
+        <td style="width: 70%;">
+            <span class="school-name">{{ school.school_name }}</span><br>
+            <span class="school-meta">
+                {{ school.city }}, {{ school.state }}
+                &nbsp;&nbsp;|&nbsp;&nbsp;
+                Students: {{ school.student_strength }}
+            </span>
+        </td>
+        <td class="year-badge" style="width: 30%;">
+            {% if active_year %}
+            Active Year: {{ active_year.year }}
+            {% else %}
+            No Active Year
+            {% endif %}
+        </td>
+    </tr>
+</table>
+
+<!-- ===== KPI SECTION ===== -->
+<div class="section-title">Key Performance Indicators</div>
+
+<table class="kpi-table">
+    <tr>
+        <td class="kpi-cell">
+            <div class="kpi-value">{{ total_generated|floatformat:0 }}</div>
+            <div class="kpi-label">Total Waste Generated</div>
+            <div class="kpi-unit">kg</div>
+        </td>
+        <td class="kpi-cell">
+            <div class="kpi-value">{{ total_diverted|floatformat:0 }}</div>
+            <div class="kpi-label">Total Waste Diverted</div>
+            <div class="kpi-unit">kg</div>
+        </td>
+        <td class="kpi-cell">
+            <div class="kpi-value">{{ diversion_rate|floatformat:1 }}%</div>
+            <div class="kpi-label">Diversion Rate</div>
+            <div class="kpi-unit">&nbsp;</div>
+        </td>
+    </tr>
+    <tr>
+        <td class="kpi-cell">
+            <div class="kpi-value">{{ co2e_avoided|floatformat:2 }}</div>
+            <div class="kpi-label">CO2e Avoided</div>
+            <div class="kpi-unit">tonnes</div>
+        </td>
+        <td class="kpi-cell">
+            <div class="kpi-value">{{ water_saved|floatformat:0 }}</div>
+            <div class="kpi-label">Water Saved</div>
+            <div class="kpi-unit">litres</div>
+        </td>
+        <td class="kpi-cell">
+            <div class="kpi-value">{{ trees_saved|floatformat:1 }}</div>
+            <div class="kpi-label">Trees Saved</div>
+            <div class="kpi-unit">&nbsp;</div>
+        </td>
+    </tr>
+</table>
+
+<!-- ===== RECENT WASTE ENTRIES ===== -->
+<div class="section-title">Recent Waste Entries (Last 10)</div>
+
+{% if recent_entries %}
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Category</th>
+            <th>Weight (kg)</th>
+            <th>Treatment Method</th>
+            <th>CO2e (kg)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in recent_entries %}
+        <tr>
+            <td>{{ entry.entry_date|date:"d M Y" }}</td>
+            <td>{{ entry.waste_category }}</td>
+            <td>{{ entry.weight_kg }}</td>
+            <td>{{ entry.get_treatment_method_display }}</td>
+            <td>{{ entry.co2e_kg|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="no-data">No waste entries found for this reporting year.</div>
+{% endif %}
+
+<!-- ===== FOOTER ===== -->
+<div class="footer">
+    Report generated by Evolvu ESG Platform on {{ export_date|date:"d M Y" }} at {{ export_date|time:"H:i" }}
+    &nbsp;|&nbsp; Data based on IPCC 2019 &amp; GHG Protocol standards
+    &nbsp;|&nbsp; Confidential — For internal use only.
+</div>
+
+</body>
+</html>

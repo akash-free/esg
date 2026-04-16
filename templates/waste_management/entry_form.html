@@ -1,0 +1,132 @@
+{% extends "teacher/teacher_base.html" %}
+
+{% block page_title %}Add Waste Entry{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <i class="fa-solid fa-plus-circle me-2" style="color: #2e7d32;"></i>
+                Add Waste Entry
+            </div>
+            <div class="card-body">
+                <form method="POST" id="wasteEntryForm">
+                    {% csrf_token %}
+                    
+                    <!-- Date -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Date</label>
+                        <input type="date" name="entry_date" class="form-control" 
+                               value="{% now 'Y-m-d' %}" required>
+                    </div>
+                    
+                    <!-- Source -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Source</label>
+                        <select name="source" class="form-select" required>
+                            <option value="classroom">Classroom</option>
+                            <option value="office">Office</option>
+                            <option value="event">Event</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <!-- ONLY CATEGORY DROPDOWN -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Waste Category <span class="text-danger">*</span></label>
+                        <select name="category_id" id="category" class="form-select" required>
+                            <option value="">Select Category</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Weight -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Weight (kg) <span class="text-danger">*</span></label>
+                        <input type="number" name="weight_kg" id="weight_kg" class="form-control" 
+                               step="0.001" placeholder="e.g., 2.5" required>
+                    </div>
+                    
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Notes</label>
+                        <textarea name="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                    
+                    <!-- Environmental Impact Preview -->
+                    <!-- <div class="card bg-light mb-3">
+                        <div class="card-body text-center">
+                            <h6 class="mb-3">🌱 Environmental Impact</h6>
+                            <div class="row">
+                                <div class="col-4">
+                                    <i class="fa-solid fa-cloud fa-2x text-success"></i>
+                                    <p class="mb-0"><strong id="co2_preview">0</strong> kg</p>
+                                    <small>CO₂ Saved</small>
+                                </div>
+                                <div class="col-4">
+                                    <i class="fa-solid fa-droplet fa-2x text-info"></i>
+                                    <p class="mb-0"><strong id="water_preview">0</strong> L</p>
+                                    <small>Water Saved</small>
+                                </div>
+                                <div class="col-4">
+                                    <i class="fa-solid fa-tree fa-2x text-success"></i>
+                                    <p class="mb-0"><strong id="trees_preview">0</strong></p>
+                                    <small>Trees Saved</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div> -->
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fa-solid fa-save"></i> Save Entry
+                        </button>
+                        <a href="{% url 'waste_entry_list' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Calculate impact when category or weight changes
+    async function calculateImpact() {
+        const categoryId = document.getElementById('category').value;
+        const weight = parseFloat(document.getElementById('weight_kg').value) || 0;
+        
+        if (!categoryId || weight === 0) {
+            document.getElementById('co2_preview').textContent = '0';
+            document.getElementById('water_preview').textContent = '0';
+            document.getElementById('trees_preview').textContent = '0';
+            return;
+        }
+        
+        // Fetch category details to get default sub-category and treatment
+        const catResponse = await fetch(`/esg/api/category-defaults/?category_id=${categoryId}`);
+        const catData = await catResponse.json();
+        
+        if (catData.default_sub_category && catData.default_treatment) {
+            // Fetch ESG factor
+            const factorResponse = await fetch(`/esg/api/esg-factor/?sub_category=${catData.default_sub_category}&treatment=${catData.default_treatment}`);
+            const factor = await factorResponse.json();
+            
+            const co2 = (weight * Math.abs(factor.co2_factor)).toFixed(2);
+            const water = ((weight / 1000) * (factor.water_factor || 0)).toFixed(0);
+            const trees = ((weight / 1000) * (factor.trees_factor || 0)).toFixed(2);
+            
+            document.getElementById('co2_preview').textContent = co2;
+            document.getElementById('water_preview').textContent = water;
+            document.getElementById('trees_preview').textContent = trees;
+        }
+    }
+    
+    document.getElementById('category').addEventListener('change', calculateImpact);
+    document.getElementById('weight_kg').addEventListener('input', calculateImpact);
+</script>
+
+{% endblock %}

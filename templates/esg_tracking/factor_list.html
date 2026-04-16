@@ -1,0 +1,74 @@
+{% extends "superadmin/dashboard_base.html" %}
+
+{% block page_title %}ESG Factors{% endblock %}
+{% block nav_esg %}active{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0">ESG Factors</h4>
+        <p class="text-muted small">CO₂, Water, and Trees impact factors for waste treatment</p>
+    </div>
+    <a href="{% url 'esg_factor_create' %}" class="btn btn-success">
+        <i class="fa-solid fa-plus"></i> Add ESG Factor
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+        <i class="fa-solid fa-chart-line me-2"></i> All ESG Factors
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Category</th>
+                    <th>Sub-Category</th>
+                    <th>Treatment</th>
+                    <th>CO₂ Factor</th>
+                    <th>Water Factor</th>
+                    <th>Trees Factor</th>
+                    <th>Actions</th>
+                </thead>
+            <tbody>
+                {% for factor in factors %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ factor.sub_category.category.name }}</td>
+                    <td>{{ factor.sub_category.name }}</td>
+                    <td>{{ factor.treatment.name }}</td>
+                    <td>
+                        <span class="badge {% if factor.co2_factor < 0 %}bg-success{% else %}bg-danger{% endif %}">
+                            {{ factor.co2_factor }}
+                        </span>
+                    </td>
+                    <td>{{ factor.water_factor|default:"—" }}</td>
+                    <td>{{ factor.trees_factor|default:"—" }}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'esg_factor_edit' factor.id %}" class="btn btn-outline-primary">
+                                <i class="fa-solid fa-edit"></i>
+                            </a>
+                            <a href="{% url 'esg_factor_delete' factor.id %}" class="btn btn-outline-danger">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-5 text-secondary">
+                        <i class="fa-solid fa-chart-line fa-3x mb-3 d-block"></i>
+                        <p>No ESG factors found. Create your first factor!</p>
+                        <a href="{% url 'esg_factor_create' %}" class="btn btn-sm btn-success">Add ESG Factor</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "superadmin/dashboard_base.html" %}
+
+{% block page_title %}Vendors{% endblock %}
+{% block nav_vendors %}active{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0">Vendor Management</h4>
+        <p class="text-muted small">Manage all waste collection and recycling partners</p>
+    </div>
+    <a href="{% url 'vendor_add' %}" class="btn btn-success">
+        <i class="fa-solid fa-plus"></i> Add New Vendor
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+        <i class="fa-solid fa-truck me-2"></i> All Vendors
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>SR</th>
+                    <th>Vendor Name</th>
+                    <th>Type</th>
+                    <th>City</th>
+                    <th>Contact</th>
+                    <th>Trust Score</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vendor in vendors %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                        <strong>{{ vendor.recycler_name }}</strong>
+                        {% if vendor.contact_person %}
+                        <br><small class="text-muted">{{ vendor.contact_person }}</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge bg-info">{{ vendor.get_vendor_type_display }}</span>
+                    </td>
+                    <td>{{ vendor.city }}</td>
+                    <td>
+                        {% if vendor.contact_phone %}{{ vendor.contact_phone }}{% endif %}
+                        {% if vendor.contact_email %}<br><small>{{ vendor.contact_email }}</small>{% endif %}
+                    </td>
+                    <td>
+                        <div class="progress" style="height: 6px; width: 80px;">
+                            <div class="progress-bar bg-success" style="width: {{ vendor.trust_score }}%"></div>
+                        </div>
+                        <small>{{ vendor.trust_score }}%</small>
+                    </td>
+                    <td>
+                        {% if vendor.status == 'active' %}
+                            <span class="badge bg-success">Active</span>
+                        {% elif vendor.status == 'pending' %}
+                            <span class="badge bg-warning">Pending</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'vendor_edit' vendor.id %}" class="btn btn-outline-primary">
+                                <i class="fa-solid fa-edit"></i>
+                            </a>
+                            <a href="{% url 'vendor_delete' vendor.id %}" class="btn btn-outline-danger">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-5 text-secondary">
+                        <i class="fa-solid fa-truck fa-3x mb-3 d-block"></i>
+                        <p>No vendors found. Add your first vendor!</p>
+                        <a href="{% url 'vendor_add' %}" class="btn btn-sm btn-success">Add Vendor</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

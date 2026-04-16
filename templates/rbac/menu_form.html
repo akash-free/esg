@@ -1,0 +1,93 @@
+{% extends "superadmin/dashboard_base.html" %}
+
+{% block page_title %}{% if menu %}Edit Menu{% else %}Create Menu{% endif %}{% endblock %}
+{% block nav_rbac %}active{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <i class="fa-solid fa-{% if menu %}edit{% else %}plus{% endif %} me-2"></i>
+                {% if menu %}Edit Menu{% else %}Create New Menu{% endif %}
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Menu Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" 
+                               value="{{ menu.name|default:'' }}" required>
+                        <small class="text-muted">Example: Dashboard, Schools, Reports</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Icon</label>
+                        <select name="icon" class="form-select">
+                            <option value="">— No Icon —</option>
+                            {% for icon in icons %}
+                            <option value="{{ icon.id }}" 
+                                {% if menu.icon.id == icon.id %}selected{% endif %}>
+                                <i class="{{ icon.class_name }}"></i> {{ icon.name }} ({{ icon.class_name }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">Select a Font Awesome icon for this menu</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">URL</label>
+                        <input type="text" name="url" class="form-control" 
+                               value="{{ menu.url|default:'#' }}" 
+                               placeholder="e.g., /dashboard/ or # for parent menus">
+                        <small class="text-muted">For parent menus use #, for child menus use the actual path</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Parent Menu</label>
+                        <select name="parent" class="form-select">
+                            <option value="">— Top Level Menu (No Parent) —</option>
+                            {% for parent in parent_menus %}
+                            <option value="{{ parent.id }}" 
+                                {% if menu.parent.id == parent.id %}selected{% endif %}>
+                                {{ parent.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">Select if this is a child menu</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Display Order</label>
+                        <input type="number" name="order" class="form-control" 
+                               value="{{ menu.order|default:0 }}" style="width: 100px;">
+                        <small class="text-muted">Lower numbers appear first</small>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input type="checkbox" name="is_active" class="form-check-input" 
+                                   id="is_active" {% if menu.is_active or not menu %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">
+                                Active (show in sidebar)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fa-solid fa-save"></i> {% if menu %}Update Menu{% else %}Create Menu{% endif %}
+                        </button>
+                        <a href="{% url 'menu_list' %}" class="btn btn-secondary">
+                            <i class="fa-solid fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

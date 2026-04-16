@@ -1,0 +1,69 @@
+{% extends "teacher/teacher_base.html" %}
+
+{% block page_title %}My Waste Entries{% endblock %}
+{% block nav_entries %}active{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0">My Waste Entries</h4>
+        <p class="text-muted small">All your recorded waste collections</p>
+    </div>
+    <a href="{% url 'waste_entry_add' %}" class="btn btn-success">
+        <i class="fa-solid fa-plus"></i> Add New Entry
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+        <i class="fa-solid fa-list me-2"></i> Recent Entries
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                 <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Weight (kg)</th>
+                    <th>CO₂ Saved (kg)</th>
+                    <th>Water Saved (L)</th>
+                    <th>Trees Saved</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in entries %}
+                <tr>
+                    <td>{{ entry.entry_date|date:"d M Y" }}</td>
+                    <td>{{ entry.waste_category }}</td>
+                    <td>{{ entry.weight_kg }}</td>
+                    <td class="text-success">{{ entry.co2e_kg|floatformat:2 }}</td>
+                    <td class="text-primary">{{ entry.water_saved_litres|floatformat:0 }}</td>
+                    <td class="text-success">{{ entry.trees_equivalent|floatformat:2 }}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'waste_entry_edit' entry.id %}" class="btn btn-outline-primary" title="Edit">
+                                <i class="fa-solid fa-edit"></i>
+                            </a>
+                            <a href="{% url 'waste_entry_delete' entry.id %}" class="btn btn-outline-danger" title="Delete">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-secondary">
+                        <i class="fa-solid fa-trash fa-3x mb-3 d-block"></i>
+                        <p>No waste entries found.</p>
+                        <a href="{% url 'waste_entry_add' %}" class="btn btn-sm btn-success">Add Your First Entry</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

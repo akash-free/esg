@@ -1,0 +1,80 @@
+{% extends "superadmin/dashboard_base.html" %}
+
+{% block page_title %}Waste Sub-Categories{% endblock %}
+{% block nav_esg %}active{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0">Waste Sub-Categories</h4>
+        <p class="text-muted small">Detailed waste types like Virgin Paper, Recycled Paper, etc.</p>
+    </div>
+    <a href="{% url 'esg_subcategory_create' %}" class="btn btn-success">
+        <i class="fa-solid fa-plus"></i> Add Sub-Category
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+        <i class="fa-solid fa-list-tree me-2"></i> All Sub-Categories
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Category</th>
+                    <th>Sub-Category Name</th>
+                    <th>Tree Type</th>
+                    <th>Growth Rate</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </thead>
+            <tbody>
+                {% for sub in subcategories %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                        <span class="badge bg-info">{{ sub.category.name }}</span>
+                    </td>
+                    <td>
+                        <strong>{{ sub.name }}</strong>
+                        <br>
+                        <small class="text-muted">{{ sub.description|truncatechars:40 }}</small>
+                    </td>
+                    <td>{{ sub.get_tree_type_display|default:"—" }}</td>
+                    <td>{{ sub.growth_rate_years|default:"—" }}</td>
+                    <td>
+                        {% if sub.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'esg_subcategory_edit' sub.id %}" class="btn btn-outline-primary">
+                                <i class="fa-solid fa-edit"></i>
+                            </a>
+                            <a href="{% url 'esg_subcategory_delete' sub.id %}" class="btn btn-outline-danger">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-secondary">
+                        <i class="fa-solid fa-list-tree fa-3x mb-3 d-block"></i>
+                        <p>No sub-categories found. Create your first sub-category!</p>
+                        <a href="{% url 'esg_subcategory_create' %}" class="btn btn-sm btn-success">Add Sub-Category</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

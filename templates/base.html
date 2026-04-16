@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Evolvu ESG Platform{% endblock %}</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- =============================================
+         GLOBAL THEME VARIABLES
+         Puri application yahan se theme legi
+         Kuch bhi change karna ho — yahan change karo
+         ============================================= -->
+    <style>
+        :root {
+            /* === BRAND COLORS === */
+            --esg-green-dark    : #1b5e20;
+            --esg-green-mid     : #2e7d32;
+            --esg-green-main    : #388e3c;
+            --esg-green-light   : #4caf50;
+            --esg-green-pale    : #e8f5e9;
+            --esg-green-accent  : #00c853;
+            --esg-teal          : #00897b;
+
+            /* === BACKGROUNDS === */
+            --esg-bg-page       : #f1f8f2;
+            --esg-bg-white      : #ffffff;
+            --esg-bg-soft       : #f5faf5;
+
+            /* === BORDERS === */
+            --esg-border        : #c8e6c9;
+            --esg-border-strong : #a5d6a7;
+
+            /* === TEXT === */
+            --esg-text-dark     : #1b2e1c;
+            --esg-text-mid      : #2e5c30;
+            --esg-text-muted    : #6a9e6c;
+            --esg-text-white    : #ffffff;
+
+            /* === FONTS === */
+            --font-display      : 'Orbitron', monospace;
+            --font-body         : 'Exo 2', sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--esg-bg-page);
+            color: var(--esg-text-dark);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--esg-bg-page); }
+        ::-webkit-scrollbar-thumb { background: var(--esg-green-light); border-radius: 3px; }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    {% block content %}{% endblock %}
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

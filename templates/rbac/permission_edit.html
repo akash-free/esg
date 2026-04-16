@@ -1,0 +1,62 @@
+{% extends "superadmin/dashboard_base.html" %}
+
+{% block page_title %}Edit Permission{% endblock %}
+{% block nav_rbac %}active{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <i class="fa-solid fa-edit me-2"></i> Edit Permission
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Role</label>
+                        <input type="text" class="form-control" value="{{ perm.role.name }}" disabled>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Menu</label>
+                        <input type="text" class="form-control" value="{{ perm.menu.name }}" disabled>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input type="checkbox" name="can_view" class="form-check-input" id="can_view" 
+                                   {% if perm.can_view %}checked{% endif %}>
+                            <label class="form-check-label fw-semibold" for="can_view">
+                                Can View <span class="text-muted">(Menu will appear in sidebar)</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input type="checkbox" name="can_write" class="form-check-input" id="can_write" 
+                                   {% if perm.can_write %}checked{% endif %}>
+                            <label class="form-check-label fw-semibold" for="can_write">
+                                Can Write <span class="text-muted">(Can add/edit/delete)</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fa-solid fa-save"></i> Update Permission
+                        </button>
+                        <a href="{% url 'permission_list' %}" class="btn btn-secondary">
+                            <i class="fa-solid fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

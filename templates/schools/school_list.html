@@ -1,0 +1,86 @@
+{% extends "superadmin/dashboard_base.html" %}
+
+{% block page_title %}Schools{% endblock %}
+{% block nav_schools %}active{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0">School Management</h4>
+        <p class="text-muted small">Manage all registered schools</p>
+    </div>
+    <a href="{% url 'school_add' %}" class="btn btn-success">
+        <i class="fa-solid fa-plus"></i> Add New School
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+        <i class="fa-solid fa-school me-2"></i> All Schools
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                 <tr>
+                    <th>SR</th>
+                    <th>School Name</th>
+                    <th>Short Name</th>
+                    <th>City</th>
+                    <th>State</th>
+                    <th>Students</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                 </tr>
+            </thead>
+            <tbody>
+                {% for school in schools %}
+                 <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                        <strong>{{ school.school_name }}</strong>
+                        <br>
+                        <small class="text-muted">{{ school.address|truncatechars:30 }}</small>
+                    </td>
+                    <td><code>{{ school.short_name }}</code></td>
+                    <td>{{ school.city }}</td>
+                    <td>{{ school.state }}</td>
+                    <td>{{ school.student_strength }}</td>
+                    <td>
+                        {% if school.status == 'active' %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <!-- ========== NAYA BUTTON: REPORTING YEARS ========== -->
+                            <a href="{% url 'reporting_year_list' school.id %}" class="btn btn-outline-info" title="Reporting Years">
+                                <i class="fa-solid fa-calendar"></i>
+                            </a>
+                            <!-- =============================================== -->
+                            <a href="{% url 'school_edit' school.id %}" class="btn btn-outline-primary" title="Edit School">
+                                <i class="fa-solid fa-edit"></i>
+                            </a>
+                            <a href="{% url 'school_delete' school.id %}" class="btn btn-outline-danger" title="Delete School">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                 </tr>
+                {% empty %}
+                 <tr>
+                    <td colspan="7" class="text-center py-5 text-secondary">
+                        <i class="fa-solid fa-school fa-3x mb-3 d-block"></i>
+                        <p>No schools found. Add your first school!</p>
+                        <a href="{% url 'school_add' %}" class="btn btn-sm btn-success">Add School</a>
+                    </td>
+                 </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

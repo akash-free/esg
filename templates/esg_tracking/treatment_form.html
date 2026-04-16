@@ -1,0 +1,76 @@
+{% extends "superadmin/dashboard_base.html" %}
+
+{% block page_title %}{% if treatment %}Edit Treatment{% else %}Add Treatment{% endif %}{% endblock %}
+{% block nav_esg %}active{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <i class="fa-solid fa-{% if treatment %}edit{% else %}plus{% endif %} me-2"></i>
+                {% if treatment %}Edit Treatment{% else %}Add New Treatment{% endif %}
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Treatment Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" 
+                               value="{{ treatment.name|default:'' }}" required>
+                        <small class="text-muted">Example: Recycled, Composted, Landfilled</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Description</label>
+                        <textarea name="description" class="form-control" rows="2">{{ treatment.description|default:'' }}</textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">CO₂ Effect</label>
+                            <select name="co2_effect" class="form-select">
+                                <option value="negative" {% if treatment.co2_effect == 'negative' %}selected{% endif %}>Negative (Avoids CO₂)</option>
+                                <option value="positive" {% if treatment.co2_effect == 'positive' %}selected{% endif %}>Positive (Generates CO₂)</option>
+                                <option value="neutral" {% if treatment.co2_effect == 'neutral' %}selected{% endif %}>Neutral</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Water Effect</label>
+                            <select name="water_effect" class="form-select">
+                                <option value="positive" {% if treatment.water_effect == 'positive' %}selected{% endif %}>Positive (Saves Water)</option>
+                                <option value="negative" {% if treatment.water_effect == 'negative' %}selected{% endif %}>Negative (Consumes Water)</option>
+                                <option value="neutral" {% if treatment.water_effect == 'neutral' %}selected{% endif %}>Neutral</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Display Order</label>
+                        <input type="number" name="order" class="form-control" 
+                               value="{{ treatment.order|default:0 }}" style="width: 100px;">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input type="checkbox" name="is_active" class="form-check-input" 
+                                   id="is_active" {% if treatment.is_active or not treatment %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">Active</label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fa-solid fa-save"></i> {% if treatment %}Update{% else %}Create{% endif %}
+                        </button>
+                        <a href="{% url 'esg_treatment_list' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

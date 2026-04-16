@@ -1,0 +1,92 @@
+{% extends "superadmin/dashboard_base.html" %}
+
+{% block page_title %}Treatment Methods{% endblock %}
+{% block nav_esg %}active{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0">Treatment Methods</h4>
+        <p class="text-muted small">Recycled, Composted, Landfilled, Incinerated, etc.</p>
+    </div>
+    <a href="{% url 'esg_treatment_create' %}" class="btn btn-success">
+        <i class="fa-solid fa-plus"></i> Add Treatment
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+        <i class="fa-solid fa-flask me-2"></i> All Treatment Methods
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>CO₂ Effect</th>
+                    <th>Water Effect</th>
+                    <th>Order</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </thead>
+            <tbody>
+                {% for t in treatments %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td><strong>{{ t.name }}</strong></td>
+                    <td>{{ t.description|truncatechars:40|default:"—" }}</td>
+                    <td>
+                        {% if t.co2_effect == 'negative' %}
+                            <span class="badge bg-success">Avoids CO₂</span>
+                        {% elif t.co2_effect == 'positive' %}
+                            <span class="badge bg-danger">Generates CO₂</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Neutral</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if t.water_effect == 'positive' %}
+                            <span class="badge bg-success">Saves Water</span>
+                        {% elif t.water_effect == 'negative' %}
+                            <span class="badge bg-danger">Consumes Water</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Neutral</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ t.order }}</td>
+                    <td>
+                        {% if t.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'esg_treatment_edit' t.id %}" class="btn btn-outline-primary">
+                                <i class="fa-solid fa-edit"></i>
+                            </a>
+                            <a href="{% url 'esg_treatment_delete' t.id %}" class="btn btn-outline-danger">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-5 text-secondary">
+                        <i class="fa-solid fa-flask fa-3x mb-3 d-block"></i>
+                        <p>No treatment methods found. Create your first treatment!</p>
+                        <a href="{% url 'esg_treatment_create' %}" class="btn btn-sm btn-success">Add Treatment</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

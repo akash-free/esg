@@ -1,0 +1,73 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.sqlite3
+
+# Django stuff
+*.log
+local_settings.py
+db.sqlite3
+media/
+
+# Environment variables
+.env
+.env.*
+
+# Virtual environment
+venv/
+env/
+ENV/
+.venv/
+
+# Static files (optional if collected)
+staticfiles/
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Coverage / Testing
+.coverage
+htmlcov/
+.tox/
+.nox/
+.pytest_cache/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Migrations (optional - usually NOT ignored)
+# */migrations/*
+# !*/migrations/__init__.py
+
+# Logs
+*.log
+
+# Celery
+celerybeat-schedule
+
+# Redis dump
+dump.rdb
+
+# Docker
+*.pid
+*.seed
+*.pid.lock
+
+# Secrets
+secrets.json
+
+# Jupyter Notebook
+.ipynb_checkpoints

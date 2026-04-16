@@ -1,0 +1,88 @@
+{% extends "superadmin/dashboard_base.html" %}
+
+{% block page_title %}Menu Management{% endblock %}
+{% block nav_rbac %}active{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0">Menu Management</h4>
+        <p class="text-muted small">Create and manage navigation menus</p>
+    </div>
+    <a href="{% url 'menu_create' %}" class="btn btn-success">
+        <i class="fa-solid fa-plus"></i> Create New Menu
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+        <i class="fa-solid fa-bars me-2"></i> All Menus
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Icon</th>
+                    <th>URL</th>
+                    <th>Parent</th>
+                    <th>Order</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for menu in menus %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                        {% if menu.icon %}
+                            <i class="{{ menu.icon.class_name }} me-1"></i>
+                        {% endif %}
+                        {{ menu.name }}
+                    </td>
+                    <td>
+                        {% if menu.icon %}
+                            <code class="small">{{ menu.icon.class_name }}</code>
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td><code class="small">{{ menu.url|default:"#" }}</code></td>
+                    <td>{{ menu.parent.name|default:"<span class='text-muted'>—</span>"|safe }}</td>
+                    <td>{{ menu.order }}</td>
+                    <td>
+                        {% if menu.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'menu_edit' menu.id %}" class="btn btn-outline-primary">
+                                <i class="fa-solid fa-edit"></i>
+                            </a>
+                            <a href="{% url 'menu_delete' menu.id %}" class="btn btn-outline-danger">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-5 text-secondary">
+                        <i class="fa-solid fa-bars fa-3x mb-3 d-block"></i>
+                        <p>No menus found. Create your first menu!</p>
+                        <a href="{% url 'menu_create' %}" class="btn btn-sm btn-success">Create Menu</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

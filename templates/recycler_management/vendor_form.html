@@ -1,0 +1,196 @@
+{% extends "superadmin/dashboard_base.html" %}
+
+{% block page_title %}{% if vendor %}Edit Vendor{% else %}Add Vendor{% endif %}{% endblock %}
+{% block nav_vendors %}active{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <i class="fa-solid fa-{% if vendor %}edit{% else %}plus{% endif %} me-2"></i>
+                {% if vendor %}Edit Vendor{% else %}Add New Vendor{% endif %}
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <!-- ========== ROW 1: Basic Info ========== -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Vendor Name <span class="text-danger">*</span></label>
+                            <input type="text" name="recycler_name" class="form-control" 
+                                   value="{{ vendor.recycler_name|default:'' }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Vendor Type</label>
+                            <select name="vendor_type" id="vendor_type" class="form-select">
+                                <option value="collection" {% if vendor.vendor_type == 'collection' %}selected{% endif %}>Collection Vendor</option>
+                                <option value="recycling" {% if vendor.vendor_type == 'recycling' %}selected{% endif %}>Recycling Vendor</option>
+                                <option value="disposal" {% if vendor.vendor_type == 'disposal' %}selected{% endif %}>Disposal Vendor</option>
+                                <option value="composting" {% if vendor.vendor_type == 'composting' %}selected{% endif %}>Composting Vendor</option>
+                                <option value="e_waste" {% if vendor.vendor_type == 'e_waste' %}selected{% endif %}>E-waste Vendor</option>
+                                <option value="other" {% if vendor.vendor_type not in 'collection,recycling,disposal,composting,e_waste' and vendor.vendor_type %}selected{% endif %}>+ Other (Add New)</option>
+                            </select>
+                            
+                            <!-- New Type Input (Hidden by default) -->
+                            <div id="new_type_div" style="display: none; margin-top: 10px;">
+                                <input type="text" name="new_vendor_type" id="new_vendor_type" class="form-control" 
+                                    placeholder="Enter new vendor type" value="{% if vendor.vendor_type not in 'collection,recycling,disposal,composting,e_waste' %}{{ vendor.vendor_type|title }}{% endif %}">
+                                <small class="text-muted">Example: medical_waste, hazardous, etc.</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h6 class="mt-4 mb-3">📌 Address & Contact</h6>
+                    
+                    <!-- ========== ROW 2: Address (Full Width) ========== -->
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Address</label>
+                            <textarea name="address" class="form-control" rows="2">{{ vendor.address|default:'' }}</textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- ========== ROW 3: City, State, Pincode ========== -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">City</label>
+                            <input type="text" name="city" class="form-control" value="{{ vendor.city|default:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">State</label>
+                            <input type="text" name="state" class="form-control" value="{{ vendor.state|default:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Pincode</label>
+                            <input type="text" name="pincode" class="form-control" value="{{ vendor.pincode|default:'' }}">
+                        </div>
+                    </div>
+                    
+                    <!-- ========== ROW 4: Contact Person, Email, Phone ========== -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Contact Person</label>
+                            <input type="text" name="contact_person" class="form-control" value="{{ vendor.contact_person|default:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Contact Email</label>
+                            <input type="email" name="contact_email" class="form-control" value="{{ vendor.contact_email|default:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Contact Phone</label>
+                            <input type="text" name="contact_phone" class="form-control" value="{{ vendor.contact_phone|default:'' }}">
+                        </div>
+                    </div>
+                    
+                    <h6 class="mt-4 mb-3">🏢 Business Information</h6>
+                    
+                    <!-- ========== ROW 5: GST Number, Certifications ========== -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">GST Number</label>
+                            <input type="text" name="gst_number" class="form-control" value="{{ vendor.gst_number|default:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Certifications</label>
+                            <input type="text" name="certifications" class="form-control" value="{{ vendor.certifications|default:'' }}" placeholder="ISO 14001, etc.">
+                        </div>
+                    </div>
+                    
+                    <h6 class="mt-4 mb-3">⚙️ Operational Information</h6>
+                    
+                    <!-- ========== ROW 6: Processing Capacity, Recycling Efficiency, Min Quantity ========== -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Processing Capacity (kg/day)</label>
+                            <input type="number" name="processing_capacity" class="form-control" value="{{ vendor.processing_capacity|default:0 }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Recycling Efficiency (%)</label>
+                            <input type="number" name="recycling_efficiency" class="form-control" value="{{ vendor.recycling_efficiency|default:0 }}" step="0.01">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Minimum Quantity (kg)</label>
+                            <input type="number" name="minimum_quantity" class="form-control" value="{{ vendor.minimum_quantity|default:0 }}">
+                        </div>
+                    </div>
+                    
+                    <!-- ========== ROW 7: Status, Trust Score ========== -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="active" {% if vendor.status == 'active' %}selected{% endif %}>Active</option>
+                                <option value="pending" {% if vendor.status == 'pending' %}selected{% endif %}>Pending</option>
+                                <option value="inactive" {% if vendor.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Trust Score (0-100)</label>
+                            <input type="number" name="trust_score" class="form-control" 
+                                   value="{{ vendor.trust_score|default:0 }}" step="0.01" min="0" max="100">
+                            <small class="text-muted">Set vendor reliability score</small>
+                        </div>
+                        <div class="col-md-4">
+                            <!-- Empty for alignment -->
+                        </div>
+                    </div>
+                    
+                    <!-- ========== ROW 8: Pickup Schedule, Service Cities ========== -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Pickup Schedule</label>
+                            <input type="text" name="pickup_schedule" class="form-control" value="{{ vendor.pickup_schedule|default:'' }}" placeholder="Monday, Wednesday, Friday">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Service Cities</label>
+                            <input type="text" name="service_cities" class="form-control" value="{{ vendor.service_cities|default:'' }}" placeholder="Delhi, Mumbai, Bangalore">
+                        </div>
+                    </div>
+                    
+                    <!-- ========== ROW 9: Notes (Full Width) ========== -->
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Notes</label>
+                            <textarea name="notes" class="form-control" rows="2">{{ vendor.notes|default:'' }}</textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- ========== BUTTONS ========== -->
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fa-solid fa-save"></i> {% if vendor %}Update Vendor{% else %}Create Vendor{% endif %}
+                        </button>
+                        <a href="{% url 'vendor_list' %}" class="btn btn-secondary">
+                            <i class="fa-solid fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    // Toggle new type input when "Other" is selected
+    document.getElementById('vendor_type').addEventListener('change', function() {
+        var newTypeDiv = document.getElementById('new_type_div');
+        if (this.value === 'other') {
+            newTypeDiv.style.display = 'block';
+        } else {
+            newTypeDiv.style.display = 'none';
+        }
+    });
+    
+    // On page load, check if 'other' should be shown
+    document.addEventListener('DOMContentLoaded', function() {
+        var select = document.getElementById('vendor_type');
+        var newTypeDiv = document.getElementById('new_type_div');
+        if (select.value === 'other') {
+            newTypeDiv.style.display = 'block';
+        }
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "teacher/teacher_base.html" %}
+
+{% block page_title %}Edit Waste Entry{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <i class="fa-solid fa-edit me-2" style="color: #2e7d32;"></i>
+                Edit Waste Entry
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Date</label>
+                        <input type="date" name="entry_date" class="form-control" 
+                               value="{{ entry.entry_date|date:'Y-m-d' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Waste Category</label>
+                        <select name="waste_category" class="form-select" required>
+                            <option value="">Select Category</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat }}" {% if entry.waste_category == cat %}selected{% endif %}>
+                                {{ cat }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Weight (kg)</label>
+                        <input type="number" name="weight_kg" class="form-control" 
+                               step="0.001" value="{{ entry.weight_kg }}" required>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <small>
+                            <i class="fa-solid fa-leaf"></i> 
+                            CO₂ Saved: <strong>{{ entry.co2e_kg|floatformat:2 }}</strong> kg
+                        </small>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fa-solid fa-save"></i> Update Entry
+                        </button>
+                        <a href="{% url 'waste_entry_list' %}" class="btn btn-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

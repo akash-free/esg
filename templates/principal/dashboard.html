@@ -1,0 +1,231 @@
+{% extends "principal/principal_base.html" %}
+
+{% block page_title %}Dashboard{% endblock %}
+{% block topbar_title %}Principal Dashboard{% endblock %}
+
+{% block dashboard_content %}
+
+<!-- Export PDF Button -->
+<div class="text-end mb-1">
+    <a href="{% url 'export_principal_dashboard_pdf' %}" class="btn btn-success btn-sm">
+        <i class="fa-solid fa-file-pdf me-1"></i> Export to PDF
+    </a>
+</div>
+
+<!-- School Info Card -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0">{{ school.school_name }}</h4>
+        <p class="text-muted small">
+            {{ school.address }} | {{ school.city }}, {{ school.state }}
+            {% if active_year %}
+            <span class="badge bg-success ms-2">Active Year: {{ active_year.year }}</span>
+            {% endif %}
+        </p>
+    </div>
+    <div class="bg-success bg-opacity-10 px-3 py-2 rounded">
+        <i class="fa-solid fa-users me-1"></i> {{ school.student_strength }} Students
+    </div>
+</div>
+
+<!-- 6 KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card card-hover border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="kpi-value">{{ total_generated|floatformat:0 }}</div>
+                <div class="small text-secondary text-uppercase">Total Waste</div>
+                <small class="text-muted">kg</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card card-hover border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="kpi-value">{{ total_diverted|floatformat:0 }}</div>
+                <div class="small text-secondary text-uppercase">Diverted</div>
+                <small class="text-muted">kg</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card card-hover border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="kpi-value">{{ diversion_rate|floatformat:1 }}%</div>
+                <div class="small text-secondary text-uppercase">Diversion Rate</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card card-hover border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="kpi-value">{{ co2e_avoided|floatformat:2 }}</div>
+                <div class="small text-secondary text-uppercase">CO₂e Avoided</div>
+                <small class="text-muted">tonnes</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card card-hover border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="kpi-value">{{ water_saved|floatformat:0 }}</div>
+                <div class="small text-secondary text-uppercase">Water Saved</div>
+                <small class="text-muted">litres</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card card-hover border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="kpi-value">{{ trees_saved|floatformat:1 }}</div>
+                <div class="small text-secondary text-uppercase">Trees Saved</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== CHARTS SECTION ========== -->
+<div class="row g-3 mb-4">
+    <!-- Pie Chart - Waste by Category -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white">
+                <div class="section-title mb-0"><i class="fa-solid fa-chart-pie me-2"></i> Waste by Category</div>
+            </div>
+            <div class="card-body">
+                <canvas id="categoryChart" height="200"></canvas>
+                {% if not category_breakdown %}
+                <div class="text-center py-5 text-secondary">
+                    <i class="fa-solid fa-chart-simple fa-2x mb-2 d-block"></i>
+                    <small>No data yet. Add waste entries to see charts.</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Bar Chart - Monthly Trend -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white">
+                <div class="section-title mb-0"><i class="fa-solid fa-chart-line me-2"></i> Monthly Trend (Last 6 Months)</div>
+            </div>
+            <div class="card-body">
+                <canvas id="monthlyChart" height="200"></canvas>
+                {% if not monthly_data %}
+                <div class="text-center py-5 text-secondary">
+                    <i class="fa-solid fa-chart-line fa-2x mb-2 d-block"></i>
+                    <small>No monthly data available.</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Waste Entries Table -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="section-title"><i class="fa-solid fa-clock me-2"></i> Recent Waste Entries</div>
+    <a href="{% url 'export_principal_waste_excel' %}" 
+       class="btn btn-sm btn-success">
+        <i class="fa-solid fa-file-excel me-1"></i> Export to Excel
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Weight (kg)</th>
+                    <th>Treatment</th>
+                    <th>CO₂e (kg)</th>
+                </thead>
+            <tbody>
+                {% for entry in recent_entries %}
+                <tr>
+                    <td>{{ entry.entry_date|date:"d M Y" }}</td>
+                    <td>{{ entry.waste_category }}</td>
+                    <td>{{ entry.weight_kg }}</td>
+                    <td><span class="badge bg-success bg-opacity-10 text-success">{{ entry.get_treatment_method_display }}</span></td>
+                    <td class="text-success">{{ entry.co2e_kg|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-secondary">
+                        <i class="fa-solid fa-trash fa-2x mb-2 d-block"></i>
+                        No waste entries yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Quick Links -->
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-center p-3 card-hover">
+            <i class="fa-solid fa-chart-line fa-2x mb-2 text-success"></i>
+            <h6 class="mb-0">ESG Reports</h6>
+            <small class="text-muted">View detailed ESG reports</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-center p-3 card-hover">
+            <i class="fa-solid fa-certificate fa-2x mb-2 text-success"></i>
+            <h6 class="mb-0">Certificates</h6>
+            <small class="text-muted">View recycling certificates</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-center p-3 card-hover">
+            <i class="fa-solid fa-download fa-2x mb-2 text-success"></i>
+            <h6 class="mb-0">Annual Snapshot</h6>
+            <small class="text-muted">Download yearly report</small>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Pie Chart - Category Breakdown
+    {% if category_breakdown %}
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(categoryCtx, {
+        type: 'pie',
+        data: {
+            labels: [{% for cat in category_breakdown %}'{{ cat.waste_category|escapejs }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+            datasets: [{
+                data: [{% for cat in category_breakdown %}{{ cat.total_weight }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+                backgroundColor: ['#388e3c', '#2e7d32', '#4caf50', '#81c784', '#a5d6a7', '#c8e6c9'],
+                borderWidth: 0
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } }
+    });
+    {% endif %}
+    
+    // Bar Chart - Monthly Trend
+    {% if monthly_data %}
+    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+    new Chart(monthlyCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for m in monthly_data %}'{{ m.month|date:"M Y" }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+            datasets: [
+                { label: 'Generated (kg)', data: [{% for m in monthly_data %}{{ m.generated }}{% if not forloop.last %}, {% endif %}{% endfor %}], backgroundColor: '#ff9800' },
+                { label: 'Diverted (kg)', data: [{% for m in monthly_data %}{{ m.diverted }}{% if not forloop.last %}, {% endif %}{% endfor %}], backgroundColor: '#4caf50' }
+            ]
+        },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } } }
+    });
+    {% endif %}
+</script>
+{% endblock %}

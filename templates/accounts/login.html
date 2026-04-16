@@ -1,0 +1,393 @@
+{% extends "base.html" %}
+
+{% block title %}Login | Evolvu ESG Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+
+    /* === PAGE BACKGROUND === */
+    .login-page {
+        min-height: 100vh;
+        background-color: var(--esg-bg-page);
+    }
+
+    /* ===  MAIN CARD === */
+    .login-card {
+        background-color: var(--esg-bg-white);
+        border: 1px solid var(--esg-border);
+        border-radius: 16px;
+        box-shadow: 0 4px 24px rgba(56,142,60,0.08);
+        overflow: hidden;
+    }
+
+    /* === LEFT PANEL === */
+    .login-left {
+        background: linear-gradient(160deg, var(--esg-green-dark) 0%, var(--esg-green-mid) 100%);
+        border-radius: 16px 0 0 16px;
+    }
+
+    .brand-title {
+        font-family: var(--font-display);
+        font-size: 2.2rem;
+        font-weight: 900;
+        letter-spacing: 0.3em;
+        color: var(--esg-text-white);
+    }
+
+    .brand-sub {
+        font-size: 0.72rem;
+        letter-spacing: 0.2em;
+        color: rgba(255,255,255,0.6);
+        text-transform: uppercase;
+    }
+
+    /* Live dot */
+    .live-dot {
+        width: 8px;
+        height: 8px;
+        background: var(--esg-green-accent);
+        border-radius: 50%;
+        box-shadow: 0 0 6px var(--esg-green-accent);
+        display: inline-block;
+        animation: blink 1.5s infinite;
+    }
+    @keyframes blink {
+        0%,100% { opacity: 1; }
+        50%      { opacity: 0.2; }
+    }
+
+    /* Stat pills — on dark bg */
+    .stat-pill {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 50px;
+        padding: 0.35rem 0.9rem;
+        font-size: 0.78rem;
+        color: rgba(255,255,255,0.85);
+    }
+    .stat-pill i { color: var(--esg-green-accent); }
+
+    /* Feature items — on dark bg */
+    .feature-item {
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        padding: 0.55rem 0;
+        color: rgba(255,255,255,0.7);
+        font-size: 0.87rem;
+    }
+    .feature-item i { color: var(--esg-green-accent); width: 20px; }
+
+    /* === RIGHT PANEL === */
+    .login-right {
+        background-color: var(--esg-bg-white);
+        border-radius: 0 16px 16px 0;
+    }
+
+    .login-heading {
+        font-family: var(--font-display);
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--esg-green-dark);
+    }
+
+    .form-label-esg {
+        font-size: 0.72rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--esg-text-muted);
+        font-weight: 500;
+    }
+
+    /* Input group icons */
+    .input-group-text {
+        background-color: var(--esg-green-pale) !important;
+        border: 1px solid var(--esg-border) !important;
+        border-right: none !important;
+        color: var(--esg-green-main) !important;
+    }
+
+    /* Inputs */
+    .form-control {
+        border: 1px solid var(--esg-border) !important;
+        border-left: none !important;
+        background-color: #fff !important;
+        color: var(--esg-text-dark) !important;
+        border-radius: 0 8px 8px 0 !important;
+    }
+    .form-control::placeholder { color: #aaa !important; }
+    .form-control:focus {
+        border-color: var(--esg-green-main) !important;
+        box-shadow: 0 0 0 0.2rem rgba(56,142,60,0.12) !important;
+    }
+    .input-group:focus-within .input-group-text {
+        border-color: var(--esg-green-main) !important;
+        color: var(--esg-green-dark) !important;
+        background-color: #d7f0d8 !important;
+    }
+
+    /* Password toggle */
+    .btn-pass-toggle {
+        background-color: var(--esg-green-pale) !important;
+        border: 1px solid var(--esg-border) !important;
+        border-left: none !important;
+        color: var(--esg-green-main) !important;
+        border-radius: 0 8px 8px 0 !important;
+    }
+    .btn-pass-toggle:hover {
+        background-color: #d7f0d8 !important;
+        color: var(--esg-green-dark) !important;
+    }
+
+    /* Submit button */
+    .btn-esg-login {
+        background: linear-gradient(135deg, var(--esg-green-mid), var(--esg-green-light));
+        border: none;
+        color: #fff;
+        font-family: var(--font-display);
+        font-size: 0.8rem;
+        letter-spacing: 0.18em;
+        border-radius: 8px;
+        padding: 0.85rem;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+    .btn-esg-login:hover {
+        background: linear-gradient(135deg, var(--esg-green-dark), var(--esg-green-mid));
+        box-shadow: 0 4px 16px rgba(56,142,60,0.3);
+        color: #fff;
+        transform: translateY(-1px);
+    }
+    .btn-esg-login:active { transform: translateY(0); }
+
+    /* Error alert */
+    .alert-esg-error {
+        background: #fff5f5;
+        border: 1px solid #ffcdd2;
+        color: #c62828;
+        border-radius: 8px;
+        font-size: 0.84rem;
+    }
+
+    /* Footer meta */
+    .footer-meta {
+        font-size: 0.72rem;
+        color: var(--esg-text-muted);
+    }
+    .footer-meta i { color: var(--esg-green-main); }
+
+    /* Divider */
+    hr.esg-hr {
+        border-color: var(--esg-border);
+        opacity: 1;
+    }
+
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<div class="login-page d-flex align-items-center justify-content-center p-3">
+
+    <!-- ===== MAIN CARD ===== -->
+    <div class="login-card w-100" style="max-width: 880px;">
+        <div class="row g-0">
+
+            <!-- ===== LEFT — DARK GREEN PANEL ===== -->
+            <div class="col-lg-5 login-left d-none d-lg-flex flex-column justify-content-between p-5">
+
+                <div>
+                    <!-- Live badge -->
+                    <div class="d-flex align-items-center gap-2 mb-4">
+                        <span class="live-dot"></span>
+                        <span style="font-size:0.7rem; letter-spacing:0.15em;
+                                     color:rgba(255,255,255,0.55); text-transform:uppercase;">
+                            ESG Intelligence Platform
+                        </span>
+                    </div>
+
+                    <!-- Icon -->
+                    <div class="d-flex align-items-center justify-content-center rounded-circle mb-3"
+                         style="width:68px; height:68px;
+                                background:rgba(255,255,255,0.1);
+                                border:1px solid rgba(255,255,255,0.2);">
+                        <i class="fa-solid fa-leaf fa-2x"
+                           style="color: var(--esg-green-accent);"></i>
+                    </div>
+
+                    <!-- Brand -->
+                    <div class="brand-title mb-1">EVOLVU</div>
+                    <div class="brand-sub mb-4">Sustainability Tracking System</div>
+
+                    <!-- Stat pills -->
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <span class="stat-pill">
+                            <i class="fa-solid fa-tree me-1"></i>Trees Saved
+                        </span>
+                        <span class="stat-pill">
+                            <i class="fa-solid fa-droplet me-1"></i>Water
+                        </span>
+                        <span class="stat-pill">
+                            <i class="fa-solid fa-wind me-1"></i>CO2
+                        </span>
+                    </div>
+
+                    <!-- Features -->
+                    <div class="feature-item">
+                        <i class="fa-solid fa-circle-check me-2"></i>
+                        End-to-end waste traceability
+                    </div>
+                    <div class="feature-item">
+                        <i class="fa-solid fa-chart-line me-2"></i>
+                        Real-time ESG impact metrics
+                    </div>
+                    <div class="feature-item">
+                        <i class="fa-solid fa-certificate me-2"></i>
+                        Digital recycling certificates
+                    </div>
+                    <div class="feature-item">
+                        <i class="fa-solid fa-shield-halved me-2"></i>
+                        Role-based secure access
+                    </div>
+                </div>
+
+
+            </div>
+
+            <!-- ===== RIGHT — WHITE FORM PANEL ===== -->
+            <div class="col-lg-7 col-12 login-right d-flex flex-column justify-content-center p-4 p-md-5">
+
+                <!-- Mobile brand -->
+                <div class="d-flex d-lg-none align-items-center gap-2 mb-4">
+                    <i class="fa-solid fa-leaf"
+                       style="color:var(--esg-green-main); font-size:1.3rem;"></i>
+                    <span style="font-family:var(--font-display);
+                                 font-size:1.4rem; font-weight:900;
+                                 color:var(--esg-green-dark);
+                                 letter-spacing:0.2em;">EVOLVU</span>
+                </div>
+
+                <!-- Heading -->
+                <div class="mb-4">
+                    <h2 class="login-heading mb-1">Welcome Back</h2>
+                    <p class="footer-meta" style="color:#aaa;">
+                        Sign in to your sustainability dashboard
+                    </p>
+                </div>
+
+                <!-- Error messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert-esg-error d-flex align-items-center gap-2 p-3 mb-3">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- ===== FORM ===== -->
+                <form method="POST" action="{% url 'login' %}" id="loginForm">
+                    {% csrf_token %}
+
+                    <!-- Username -->
+                    <div class="mb-3">
+                        <label class="form-label-esg mb-1" for="username">
+                            Username
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fa-solid fa-user"></i>
+                            </span>
+                            <input type="text"
+                                   id="username"
+                                   name="username"
+                                   class="form-control"
+                                   placeholder="Enter your username"
+                                   value="{{ request.POST.username }}"
+                                   autocomplete="username"
+                                   required>
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-4">
+                        <label class="form-label-esg mb-1" for="password">
+                            Password
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fa-solid fa-lock"></i>
+                            </span>
+                            <input type="password"
+                                   id="password"
+                                   name="password"
+                                   class="form-control"
+                                   placeholder="Enter your password"
+                                   autocomplete="current-password"
+                                   required>
+                            <button class="btn btn-pass-toggle"
+                                    type="button"
+                                    id="togglePass">
+                                <i class="fa-solid fa-eye" id="toggleIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit"
+                            class="btn-esg-login mb-3"
+                            id="loginBtn">
+                        <i class="fa-solid fa-right-to-bracket me-2"></i>
+                        ACCESS DASHBOARD
+                    </button>
+
+                </form>
+
+                <hr class="esg-hr">
+
+                <!-- Footer info -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="footer-meta">
+                        <i class="fa-solid fa-shield-halved me-1"></i>Secure access
+                    </span>
+                    <span class="footer-meta">
+                        <i class="fa-solid fa-lock me-1"></i>Encrypted
+                    </span>
+                    <span class="footer-meta">
+                        <i class="fa-solid fa-leaf me-1"></i>Evolvu ESG
+                    </span>
+                </div>
+
+            </div>
+            <!-- end right -->
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    // Password show / hide
+    document.getElementById('togglePass').addEventListener('click', function () {
+        const pass = document.getElementById('password');
+        const icon = document.getElementById('toggleIcon');
+        if (pass.type === 'password') {
+            pass.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            pass.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    });
+
+    // Submit loading state
+    document.getElementById('loginForm').addEventListener('submit', function () {
+        const btn = document.getElementById('loginBtn');
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Authenticating...';
+        btn.disabled = true;
+    });
+</script>
+{% endblock %}

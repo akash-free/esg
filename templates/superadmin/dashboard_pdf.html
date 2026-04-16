@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ESG Dashboard Report</title>
+<style>
+    @page {
+        size: A4;
+        margin: 1.5cm 1.5cm 1.5cm 1.5cm;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        font-size: 11px;
+        color: #333;
+        background: #fff;
+    }
+
+    /* ===== HEADER ===== */
+    .header {
+        background-color: #1b5e20;
+        color: #fff;
+        padding: 0;
+        margin-bottom: 16px;
+    }
+    .header-table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #1b5e20;
+    }
+    .header-table td {
+        padding: 14px 18px;
+        vertical-align: middle;
+        color: #fff;
+    }
+    .header-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #fff;
+    }
+    .header-sub {
+        font-size: 10px;
+        color: #c8e6c9;
+        margin-top: 3px;
+    }
+    .header-right {
+        font-size: 10px;
+        text-align: right;
+        color: #c8e6c9;
+    }
+
+    /* ===== SCHOOL FILTER BADGE ===== */
+    .filter-badge {
+        background: #e8f5e9;
+        border: 1px solid #4caf50;
+        border-left: 4px solid #2e7d32;
+        padding: 6px 12px;
+        font-size: 10.5px;
+        margin-bottom: 14px;
+        color: #1b5e20;
+    }
+
+    /* ===== SECTION TITLE ===== */
+    .section-title {
+        font-size: 12px;
+        font-weight: bold;
+        color: #1b5e20;
+        border-bottom: 2px solid #4caf50;
+        padding-bottom: 4px;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* ===== KPI CARDS — 3 per row using table ===== */
+    .kpi-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 6px;
+        margin-bottom: 16px;
+    }
+    .kpi-cell {
+        width: 33.33%;
+        background: #f9fbe7;
+        border: 1px solid #dcedc8;
+        border-top: 3px solid #4caf50;
+        padding: 10px 12px;
+        vertical-align: top;
+    }
+    .kpi-value {
+        font-size: 22px;
+        font-weight: bold;
+        color: #1b5e20;
+        line-height: 1.1;
+    }
+    .kpi-label {
+        font-size: 9px;
+        color: #555;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-top: 2px;
+    }
+    .kpi-unit {
+        font-size: 9px;
+        color: #888;
+        margin-top: 1px;
+    }
+
+    /* ===== CATEGORY TABLE ===== */
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 16px;
+        font-size: 10.5px;
+    }
+    .data-table thead tr {
+        background-color: #2e7d32;
+        color: #fff;
+    }
+    .data-table thead th {
+        padding: 7px 10px;
+        text-align: left;
+        font-weight: bold;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .data-table tbody tr:nth-child(even) {
+        background-color: #f1f8e9;
+    }
+    .data-table tbody tr:nth-child(odd) {
+        background-color: #fff;
+    }
+    .data-table tbody td {
+        padding: 6px 10px;
+        border-bottom: 1px solid #e0e0e0;
+        vertical-align: middle;
+    }
+
+    /* Progress bar for category */
+    .bar-wrap {
+        background: #dcedc8;
+        height: 8px;
+        width: 100px;
+        display: inline-block;
+        vertical-align: middle;
+        margin-left: 6px;
+    }
+    .bar-fill {
+        background: #4caf50;
+        height: 8px;
+        display: block;
+    }
+
+    /* ===== STATS SUMMARY — 2 col table ===== */
+    .stats-outer {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 8px;
+        margin-bottom: 16px;
+    }
+    .stats-box {
+        width: 50%;
+        vertical-align: top;
+        border: 1px solid #dcedc8;
+        padding: 0;
+    }
+    .stats-box-header {
+        background: #2e7d32;
+        color: #fff;
+        padding: 7px 10px;
+        font-size: 10px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .stats-inner {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .stats-inner tr:nth-child(even) {
+        background: #f1f8e9;
+    }
+    .stats-inner td {
+        padding: 6px 10px;
+        font-size: 10.5px;
+        border-bottom: 1px solid #e8f5e9;
+        vertical-align: middle;
+    }
+    .stats-inner td.val {
+        font-weight: bold;
+        color: #1b5e20;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    /* ===== FOOTER ===== */
+    .footer {
+        margin-top: 20px;
+        border-top: 1px solid #ccc;
+        padding-top: 8px;
+        font-size: 9px;
+        color: #888;
+        text-align: center;
+    }
+
+    /* ===== PAGE BREAK ===== */
+    .page-break {
+        page-break-before: always;
+    }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<table class="header-table">
+    <tr>
+        <td style="width:65%;">
+            <span class="header-title">ESG Dashboard Report</span><br>
+            <span class="header-sub">Waste Management &amp; Environmental Impact Summary</span>
+        </td>
+        <td class="header-right" style="width:35%;">
+            Generated: {{ export_date|date:"d M Y, H:i" }}<br>
+            {% if selected_school %}
+            School: {{ selected_school.school_name }}
+            {% else %}
+            Scope: All Schools
+            {% endif %}
+        </td>
+    </tr>
+</table>
+<br>
+
+<!-- FILTER BADGE -->
+{% if selected_school %}
+<div class="filter-badge">
+    &#9657; Filtered View: Showing data for <strong>{{ selected_school.school_name }}</strong> only.
+</div>
+{% else %}
+<div class="filter-badge">
+    &#9657; Scope: Showing <strong>All Schools</strong> — Consolidated data.
+</div>
+{% endif %}
+
+<!-- ===== KPI SECTION ===== -->
+<div class="section-title">&#9670; Key Performance Indicators</div>
+
+<table class="kpi-table">
+    <tr>
+        <td class="kpi-cell">
+            <div class="kpi-value">{{ total_generated|floatformat:0 }}</div>
+            <div class="kpi-label">Total Waste Generated</div>
+            <div class="kpi-unit">kg</div>
+        </td>
+        <td class="kpi-cell">
+            <div class="kpi-value">{{ total_diverted|floatformat:0 }}</div>
+            <div class="kpi-label">Total Waste Diverted</div>
+            <div class="kpi-unit">kg</div>
+        </td>
+        <td class="kpi-cell">
+            <div class="kpi-value">{{ diversion_rate|floatformat:1 }}%</div>
+            <div class="kpi-label">Diversion Rate</div>
+            <div class="kpi-unit">&nbsp;</div>
+        </td>
+    </tr>
+    <tr>
+        <td class="kpi-cell">
+            <div class="kpi-value">{{ co2e_avoided|floatformat:3 }}</div>
+            <div class="kpi-label">CO2e Avoided</div>
+            <div class="kpi-unit">tonnes</div>
+        </td>
+        <td class="kpi-cell">
+            <div class="kpi-value">{{ water_saved|floatformat:0 }}</div>
+            <div class="kpi-label">Water Saved</div>
+            <div class="kpi-unit">litres</div>
+        </td>
+        <td class="kpi-cell">
+            <div class="kpi-value">{{ trees_saved|floatformat:1 }}</div>
+            <div class="kpi-label">Trees Saved</div>
+            <div class="kpi-unit">&nbsp;</div>
+        </td>
+    </tr>
+</table>
+
+<!-- ===== WASTE BY CATEGORY ===== -->
+<div class="section-title">&#9670; Waste by Category</div>
+
+{% if category_breakdown %}
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Waste Category</th>
+            <th>Weight (kg)</th>
+            <th>% Share</th>
+            <th>Visual</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for cat in category_breakdown %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td><strong>{{ cat.waste_category }}</strong></td>
+            <td>{{ cat.total_weight|floatformat:1 }}</td>
+            <td>
+                {% if total_generated > 0 %}
+                    {% widthratio cat.total_weight total_generated 100 %}%
+                {% else %}
+                    0%
+                {% endif %}
+            </td>
+            <td>
+                <div class="bar-wrap">
+                    {% if total_generated > 0 %}
+                    <div class="bar-fill" style="width: {% widthratio cat.total_weight total_generated 100 %}px;"></div>
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p style="color:#888; font-size:10px; margin-bottom:14px;">No category data available.</p>
+{% endif %}
+
+<!-- ===== RECENT WASTE ENTRIES ===== -->
+<div class="section-title">&#9670; Recent Waste Entries (Last 10)</div>
+
+{% if recent_entries %}
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>School</th>
+            <th>Category</th>
+            <th>Weight (kg)</th>
+            <th>Treatment</th>
+            <th>CO2e (kg)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in recent_entries %}
+        <tr>
+            <td>{{ entry.entry_date|date:"d M Y" }}</td>
+            <td>{{ entry.reporting_year.school.school_name|truncatechars:22 }}</td>
+            <td>{{ entry.waste_category }}</td>
+            <td>{{ entry.weight_kg }}</td>
+            <td>{{ entry.get_treatment_method_display }}</td>
+            <td>{{ entry.co2e_kg|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p style="color:#888; font-size:10px; margin-bottom:14px;">No waste entries available.</p>
+{% endif %}
+
+<!-- ===== ORGANISATIONS & PLATFORM STATS ===== -->
+<div class="section-title">&#9670; Organisation &amp; Platform Summary</div>
+
+<table class="stats-outer">
+    <tr>
+        <td class="stats-box">
+            <div class="stats-box-header">Organisations</div>
+            <table class="stats-inner">
+                <tr>
+                    <td>Total Schools</td>
+                    <td class="val">{{ total_schools }}</td>
+                </tr>
+                <tr>
+                    <td>Total Recyclers</td>
+                    <td class="val">{{ total_recyclers }}</td>
+                </tr>
+            </table>
+        </td>
+        <td class="stats-box">
+            <div class="stats-box-header">Platform Stats</div>
+            <table class="stats-inner">
+                <tr>
+                    <td>Total Users</td>
+                    <td class="val">{{ total_users }}</td>
+                </tr>
+                <tr>
+                    <td>Entries in Report</td>
+                    <td class="val">{{ recent_entries|length }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<!-- FOOTER -->
+<div class="footer">
+    This report was auto-generated by the ESG Dashboard on {{ export_date|date:"d M Y" }} at {{ export_date|time:"H:i" }}. &nbsp;|&nbsp;
+    Confidential &mdash; For internal use only.
+</div>
+
+</body>
+</html>

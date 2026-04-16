@@ -1,0 +1,84 @@
+{% extends "superadmin/dashboard_base.html" %}
+
+{% block page_title %}Permission Management{% endblock %}
+{% block nav_rbac %}active{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0">Permission Management</h4>
+        <p class="text-muted small">Assign View/Write permissions to roles for each menu</p>
+    </div>
+    <a href="{% url 'permission_create' %}" class="btn btn-success">
+        <i class="fa-solid fa-plus"></i> Assign New Permission
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+        <i class="fa-solid fa-lock me-2"></i> All Permissions
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Role</th>
+                    <th>Menu</th>
+                    <th>View Permission</th>
+                    <th>Write Permission</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for perm in permissions %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td><span class="badge bg-success">{{ perm.role.name }}</span></td>
+                    <td>
+                        {% if perm.menu.icon %}
+                            <i class="{{ perm.menu.icon.class_name }} me-1"></i>
+                        {% endif %}
+                        {{ perm.menu.name }}
+                    </td>
+                    <td>
+                        {% if perm.can_view %}
+                            <span class="badge bg-success"><i class="fa-solid fa-check"></i> View</span>
+                        {% else %}
+                            <span class="badge bg-secondary"><i class="fa-solid fa-times"></i> No View</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if perm.can_write %}
+                            <span class="badge bg-primary"><i class="fa-solid fa-pen"></i> Write</span>
+                        {% else %}
+                            <span class="badge bg-secondary"><i class="fa-solid fa-times"></i> No Write</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'permission_edit' perm.id %}" class="btn btn-outline-primary">
+                                <i class="fa-solid fa-edit"></i>
+                            </a>
+                            <a href="{% url 'permission_delete' perm.id %}" class="btn btn-outline-danger">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-secondary">
+                        <i class="fa-solid fa-lock fa-3x mb-3 d-block"></i>
+                        <p>No permissions assigned yet.</p>
+                        <a href="{% url 'permission_create' %}" class="btn btn-sm btn-success">Assign Permission</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

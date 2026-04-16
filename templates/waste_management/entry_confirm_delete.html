@@ -1,0 +1,41 @@
+{% extends "teacher/teacher_base.html" %}
+
+{% block page_title %}Delete Waste Entry{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <i class="fa-solid fa-trash text-danger me-2"></i> Delete Waste Entry
+            </div>
+            <div class="card-body text-center py-4">
+                <i class="fa-solid fa-exclamation-triangle text-warning fa-3x mb-3"></i>
+                <h5>Are you sure?</h5>
+                <p>You are about to delete this waste entry:</p>
+                <div class="alert alert-light">
+                    <strong>Date:</strong> {{ entry.entry_date|date:"d M Y" }}<br>
+                    <strong>Category:</strong> {{ entry.waste_category }}<br>
+                    <strong>Weight:</strong> {{ entry.weight_kg }} kg<br>
+                    <strong>CO₂ Saved:</strong> {{ entry.co2e_kg|floatformat:2 }} kg
+                </div>
+                <p class="small text-danger">This action cannot be undone!</p>
+                
+                <form method="POST" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fa-solid fa-trash"></i> Yes, Delete
+                        </button>
+                        <a href="{% url 'waste_entry_list' %}" class="btn btn-secondary">
+                            <i class="fa-solid fa-ban"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block page_title %}Teacher Dashboard{% endblock %} | Evolvu ESG</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --esg-green-dark: #1b5e20;
+            --esg-green-mid: #2e7d32;
+            --esg-green-main: #388e3c;
+            --esg-green-light: #4caf50;
+            --esg-green-accent: #00c853;
+            --esg-bg-page: #f1f8f2;
+            --font-display: 'Orbitron', monospace;
+            --font-body: 'Exo 2', sans-serif;
+        }
+        body {
+            font-family: var(--font-body);
+            background-color: var(--esg-bg-page);
+        }
+        .sidebar-custom {
+            background: linear-gradient(180deg, var(--esg-green-dark) 0%, var(--esg-green-mid) 100%);
+        }
+        .sidebar-custom .nav-link {
+            color: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+        }
+        .sidebar-custom .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .sidebar-custom .nav-link i {
+            width: 24px;
+        }
+        .has-children {
+            position: relative;
+        }
+        .has-children > a::after {
+            content: '\f078';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 0.7rem;
+            position: absolute;
+            right: 1rem;
+        }
+        .has-children.open > a::after {
+            transform: rotate(180deg);
+        }
+        .children-menu {
+            padding-left: 2rem;
+            display: none;
+        }
+        .children-menu.show {
+            display: block;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            transition: all 0.2s;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar-custom text-white vh-100 position-fixed top-0 start-0" style="width: 260px; z-index: 1000;">
+    <div class="p-3 border-bottom">
+        <div class="d-flex align-items-center gap-2">
+            <i class="fa-solid fa-leaf" style="color: var(--esg-green-accent);"></i>
+            <div>
+                <div class="fw-bold" style="font-family: var(--font-display); letter-spacing: 0.2em;">EVOLVU</div>
+                <div class="small text-white-50">ESG Platform</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex flex-column h-100">
+        <nav class="nav flex-column p-3 gap-1">
+            {% for menu in user_menu %}
+                {% if menu.children %}
+                    <div class="has-children">
+                        <a href="#" class="nav-link" onclick="toggleChildren(this); return false;">
+                            <i class="{{ menu.icon }} me-2"></i> {{ menu.name }}
+                        </a>
+                        <div class="children-menu">
+                            {% for child in menu.children %}
+                                <a href="{{ child.url }}" class="nav-link">
+                                    <i class="{{ child.icon }} me-2"></i> {{ child.name }}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{{ menu.url }}" class="nav-link">
+                        <i class="{{ menu.icon }} me-2"></i> {{ menu.name }}
+                    </a>
+                {% endif %}
+            {% empty %}
+                <div class="text-white-50 small p-2">No menus assigned.</div>
+            {% endfor %}
+        </nav>
+
+        <div class="mt-auto p-3 border-top">
+            <div class="d-flex align-items-center gap-2">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: rgba(255,255,255,0.1);">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div>
+                    <div class="small fw-semibold">{{ request.user.name }}</div>
+                    <div class="small text-white-50">Teacher</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div style="margin-left: 260px;">
+    <div class="bg-white border-bottom sticky-top">
+        <div class="d-flex justify-content-between align-items-center px-4 py-3">
+            <div>
+                <i class="fa-solid fa-gauge me-2 text-success"></i>
+                <span class="fw-semibold small">{% block topbar_title %}Teacher Dashboard{% endblock %}</span>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="small text-secondary">Welcome, <span class="fw-semibold">{{ request.user.name }}</span></span>
+                <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="p-4">
+        {% block dashboard_content %}{% endblock %}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function toggleChildren(element) {
+        const parentDiv = element.closest('.has-children');
+        const childrenDiv = parentDiv.querySelector('.children-menu');
+        parentDiv.classList.toggle('open');
+        childrenDiv.classList.toggle('show');
+    }
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

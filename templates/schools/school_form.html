@@ -1,0 +1,75 @@
+{% extends "superadmin/dashboard_base.html" %}
+
+{% block page_title %}{% if school %}Edit School{% else %}Add School{% endif %}{% endblock %}
+{% block nav_schools %}active{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <i class="fa-solid fa-{% if school %}edit{% else %}plus{% endif %} me-2"></i>
+                {% if school %}Edit School{% else %}Add New School{% endif %}
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">School Name <span class="text-danger">*</span></label>
+                        <input type="text" name="school_name" class="form-control" 
+                               value="{{ school.school_name|default:'' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Short Name <span class="text-danger">*</span></label>
+                        <input type="text" name="short_name" class="form-control" 
+                            value="{{ school.short_name|default:'' }}" required>
+                        <small class="text-muted">Example: SACS, HSCS, DPS. Used for API integration.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Address</label>
+                        <textarea name="address" class="form-control" rows="2">{{ school.address|default:'' }}</textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">City</label>
+                            <input type="text" name="city" class="form-control" value="{{ school.city|default:'' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">State</label>
+                            <input type="text" name="state" class="form-control" value="{{ school.state|default:'' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Student Strength</label>
+                        <input type="number" name="student_strength" class="form-control" 
+                               value="{{ school.student_strength|default:0 }}">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="active" {% if school.status == 'active' %}selected{% endif %}>Active</option>
+                            <option value="inactive" {% if school.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fa-solid fa-save"></i> {% if school %}Update School{% else %}Create School{% endif %}
+                        </button>
+                        <a href="{% url 'school_list' %}" class="btn btn-secondary">
+                            <i class="fa-solid fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
