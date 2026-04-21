@@ -1,7 +1,7 @@
 {% extends "principal/principal_base.html" %}
 
 {% block page_title %}Dashboard{% endblock %}
-{% block topbar_title %}Principal Dashboard{% endblock %}
+{% block topbar_title %}Principal Coordinator Dashboard{% endblock %}
 
 {% block dashboard_content %}
 
@@ -51,8 +51,9 @@
     <div class="col-6 col-md-4 col-lg-2">
         <div class="card card-hover border-0 shadow-sm h-100">
             <div class="card-body">
-                <div class="kpi-value">{{ diversion_rate|floatformat:1 }}%</div>
-                <div class="small text-secondary text-uppercase">Diversion Rate</div>
+                <div class="kpi-value">{{ total_dispatched|floatformat:1 }}</div>
+                <div class="small text-secondary text-uppercase">Total Dispatched</div>
+                <small class="text-muted">kg</small>
             </div>
         </div>
     </div>
@@ -60,6 +61,7 @@
         <div class="card card-hover border-0 shadow-sm h-100">
             <div class="card-body">
                 <div class="kpi-value">{{ co2e_avoided|floatformat:2 }}</div>
+                
                 <div class="small text-secondary text-uppercase">CO₂e Avoided</div>
                 <small class="text-muted">tonnes</small>
             </div>

@@ -15,5 +15,8 @@ urlpatterns = [
     path('export-monthly-trend-excel/', views.export_monthly_trend_excel, name='export_monthly_trend_excel'),
     path('export-principal-dashboard-pdf/', views.export_principal_dashboard_pdf, name='export_principal_dashboard_pdf'),
     path('export-waste-excel/', views.export_principal_waste_excel, name='export_principal_waste_excel'),
+    path('dispatch/', views.principal_dispatch, name='principal_dispatch'),
+    path('dispatch-history/', views.principal_dispatch_history, name='principal_dispatch_history'),
+    path('dispatch/cancel/<int:id>/', views.principal_dispatch_cancel, name='principal_dispatch_cancel'),
     
 ]

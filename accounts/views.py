@@ -43,6 +43,8 @@ from openpyxl.utils import get_column_letter
 from django.http import HttpResponse
 from django.db.models import Sum, Count
 from django.db.models.functions import Coalesce
+from django.shortcuts import render, redirect, get_object_or_404
+from waste_management.models import WasteEntry, WasteDispatch, WasteDispatchItem
 
 
 
@@ -619,6 +621,7 @@ def principal_dashboard(request):
     
     # ========== KPI CALCULATIONS ==========
     total_generated = waste_entries.aggregate(total=Sum('weight_kg'))['total'] or Decimal('0')
+    print(f"DEBUG: Total generated = {total_generated} kg")
     
     # Diverted (Recycled, Composted, Co-processed)
     diverted_entries = waste_entries.filter(treatment_method__in=['recycled', 'composted', 'co_processed'])
@@ -630,15 +633,29 @@ def principal_dashboard(request):
         diversion_rate = (total_diverted / total_generated) * 100
     
     # CO₂e Avoided
-    co2e_avoided_kg = waste_entries.filter(co2e_kg__lt=0).aggregate(total=Sum('co2e_kg'))['total'] or Decimal('0')
-    co2e_avoided_tonnes = abs(co2e_avoided_kg) / Decimal('1000')
+    # co2e_avoided_kg = waste_entries.filter(co2e_kg__lt=0).aggregate(total=Sum('co2e_kg'))['total'] or Decimal('0')
+    # co2e_avoided_tonnes = abs(co2e_avoided_kg) / Decimal('1000')
+    co2e_avoided_kg = waste_entries.aggregate(
+        total=Coalesce(Sum('co2e_kg'), Decimal('0'))
+    )['total']
+    co2e_avoided_tonnes = co2e_avoided_kg / Decimal('1000')
+    print(f"DEBUG: CO2e avoided (tonnes) = {co2e_avoided_tonnes}")
+    print(f"DEBUG: CO2e avoided (kg) = {co2e_avoided_kg}")
     
     # Water Saved
     water_saved = waste_entries.aggregate(total=Sum('water_saved_litres'))['total'] or Decimal('0')
+    print(f"DEBUG: Water saved = {water_saved} litres")
     
     # Trees Saved
     trees_saved = waste_entries.aggregate(total=Sum('trees_equivalent'))['total'] or Decimal('0')
-    
+    print(f"DEBUG: Trees saved = {trees_saved}")
+
+    remaining_weight = waste_entries.aggregate(total=Sum('remaining_weight'))['total'] or Decimal('0')
+    print(f"DEBUG: Remaining weight = {remaining_weight} kg")
+
+    total_dispatched = total_generated - remaining_weight
+    print(f"DEBUG: Total dispatched = {total_dispatched} kg")
+
     # ========== PIE CHART DATA (Category-wise breakdown) ==========
     from django.db.models import Sum as SumModel
     category_breakdown = list(
@@ -672,7 +689,7 @@ def principal_dashboard(request):
         'total_generated': round(total_generated, 1),
         'total_diverted': round(total_diverted, 1),
         'diversion_rate': round(diversion_rate, 1),
-        'co2e_avoided': round(co2e_avoided_tonnes, 2),
+        'co2e_avoided': round(co2e_avoided_kg, 2),
         'water_saved': round(water_saved, 0),
         'trees_saved': round(trees_saved, 1),
         'recent_entries': recent_entries,
@@ -680,6 +697,7 @@ def principal_dashboard(request):
         # Chart data
         'category_breakdown': category_breakdown,
         'monthly_data': monthly_data,
+        'total_dispatched': round(total_dispatched, 1),
     }
     
     return render(request, 'principal/dashboard.html', context)
@@ -1547,3 +1565,229 @@ def export_principal_waste_excel(request):
     )
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
+
+
+@login_required
+def principal_dispatch(request):
+    if request.user.role != 'principal':
+        messages.error(request, 'Access denied.')
+        return redirect('login')
+    
+    principal = Principal.objects.filter(user=request.user).first()
+    if not principal:
+        messages.error(request, 'Principal profile not found.')
+        return redirect('login')
+    
+    school = principal.school
+    active_year = ReportingYear.objects.filter(school=school, status='active').first()
+    
+    if not active_year:
+        messages.error(request, 'No active reporting year found.')
+        return redirect('principal_dashboard')
+    
+    # ========== CORRECT AVAILABLE CALCULATION ==========
+    # Get all waste entries with remaining_weight > 0
+    available_entries = WasteEntry.objects.filter(
+        reporting_year=active_year,
+        remaining_weight__gt=0
+    ).order_by('entry_date')
+    
+    # Total available weight
+    total_available = available_entries.aggregate(total=Sum('remaining_weight'))['total'] or Decimal('0')
+    
+    print(f"DEBUG: Total available weight: {total_available}")
+    print(f"DEBUG: Available entries count: {available_entries.count()}")
+    # ===================================================
+    
+    # Category-wise breakdown
+    category_wise = {}
+    for entry in available_entries:
+        category = entry.waste_category
+        category_wise[category] = category_wise.get(category, 0) + float(entry.remaining_weight)
+    
+    vendors = Recycler.objects.filter(status='active')
+    dispatches = WasteDispatch.objects.filter(school=school).order_by('-created_at')
+    
+    if request.method == 'POST':
+        vendor_id = request.POST.get('vendor_id')
+        dispatch_weight = request.POST.get('dispatch_weight')
+        scheduled_pickup = request.POST.get('scheduled_pickup')
+        notes = request.POST.get('notes')
+        
+        if not vendor_id:
+            messages.error(request, 'Please select a vendor.')
+            return redirect('principal_dispatch')
+        
+        if not dispatch_weight or float(dispatch_weight) <= 0:
+            messages.error(request, 'Please enter valid weight.')
+            return redirect('principal_dispatch')
+        
+        dispatch_weight_float = float(dispatch_weight)
+        total_available_float = float(total_available)
+        
+        if dispatch_weight_float > total_available_float:
+            messages.error(request, f'Only {total_available_float} kg available. You entered {dispatch_weight_float} kg.')
+            return redirect('principal_dispatch')
+        
+        vendor = get_object_or_404(Recycler, id=vendor_id)
+        
+        # Create dispatch record
+        dispatch = WasteDispatch.objects.create(
+            school=school,
+            vendor=vendor,
+            principal=request.user,
+            total_weight=dispatch_weight_float,
+            scheduled_pickup=scheduled_pickup,
+            notes=notes,
+            status='dispatched'
+        )
+        
+        # Dispatch from entries (using remaining_weight)
+        remaining = dispatch_weight_float
+        for entry in available_entries:
+            if remaining <= 0:
+                break
+            
+            entry_remaining = float(entry.remaining_weight)
+            take_weight = min(entry_remaining, remaining)
+            
+            WasteDispatchItem.objects.create(
+                dispatch=dispatch,
+                waste_entry=entry,
+                weight_kg=take_weight
+            )
+            
+            # Update entry's remaining weight
+            entry.remaining_weight = Decimal(str(entry_remaining - take_weight))
+            
+            new_remaining = Decimal(str(entry_remaining - take_weight))
+            WasteEntry.objects.filter(id=entry.id).update(remaining_weight=new_remaining)
+            new_remaining = Decimal(str(entry_remaining - take_weight))
+            WasteEntry.objects.filter(id=entry.id).update(remaining_weight=new_remaining)
+            
+            remaining -= take_weight
+            print(f"Dispatched: {take_weight} kg from entry {entry.id}, Remaining now: {entry.remaining_weight}")
+        
+        messages.success(request, f'{dispatch_weight_float} kg waste dispatched to {vendor.recycler_name}!')
+        return redirect('principal_dispatch')
+    
+    context = {
+        'school': school,
+        'total_available': round(float(total_available), 1),
+        'category_wise': category_wise,
+        'vendors': vendors,
+        'dispatches': dispatches,
+    }
+    return render(request, 'principal/dispatch.html', context)
+
+@login_required
+def principal_dispatch_history(request):
+    if request.user.role != 'principal':
+        messages.error(request, 'Access denied.')
+        return redirect('login')
+    
+    principal = Principal.objects.filter(user=request.user).first()
+    if not principal:
+        messages.error(request, 'Principal profile not found.')
+        return redirect('login')
+    
+    school = principal.school
+    active_year = ReportingYear.objects.filter(school=school, status='active').first()
+    
+    # Get dispatches (all, including cancelled)
+    dispatches = WasteDispatch.objects.filter(school=school).order_by('-created_at')
+    
+    # ========== CALCULATE SUMMARY ==========
+    # Total waste collected (original)
+    if active_year:
+        total_waste = WasteEntry.objects.filter(reporting_year=active_year).aggregate(total=Sum('weight_kg'))['total'] or Decimal('0')
+    else:
+        total_waste = Decimal('0')
+    
+    # Total dispatched weight (ONLY from non-cancelled dispatches)
+    total_dispatched = WasteDispatch.objects.filter(
+        school=school
+    ).exclude(status='cancelled').aggregate(total=Sum('total_weight'))['total'] or Decimal('0')
+    
+    # Remaining stock (from remaining_weight field - most accurate)
+    if active_year:
+        total_remaining = WasteEntry.objects.filter(
+            reporting_year=active_year
+        ).aggregate(total=Sum('remaining_weight'))['total'] or Decimal('0')
+    else:
+        total_remaining = Decimal('0')
+    # =====================================
+    
+    # Debug prints
+    print(f"=== DISPATCH HISTORY SUMMARY ===")
+    print(f"Total Waste: {total_waste} kg")
+    print(f"Total Dispatched (non-cancelled): {total_dispatched} kg")
+    print(f"Total Remaining (from remaining_weight): {total_remaining} kg")
+    print(f"Verification: {total_dispatched} + {total_remaining} = {total_dispatched + total_remaining} kg")
+    
+    context = {
+        'dispatches': dispatches,
+        'total_waste': round(float(total_waste), 1),
+        'total_dispatched': round(float(total_dispatched), 1),
+        'total_remaining': round(float(total_remaining), 1),
+    }
+    return render(request, 'principal/dispatch_history.html', context)
+
+@login_required
+def principal_dispatch_cancel(request, id):
+    """Cancel dispatch and restore waste"""
+    if request.user.role != 'principal':
+        messages.error(request, 'Access denied.')
+        return redirect('login')
+    
+    principal = Principal.objects.filter(user=request.user).first()
+    if not principal:
+        messages.error(request, 'Principal profile not found.')
+        return redirect('login')
+    
+    dispatch = get_object_or_404(WasteDispatch, id=id, school=principal.school)
+    
+    if dispatch.status == 'cancelled':
+        messages.warning(request, 'This dispatch is already cancelled.')
+        return redirect('principal_dispatch_history')
+    
+    if dispatch.status == 'completed':
+        messages.error(request, 'Cannot cancel completed dispatch.')
+        return redirect('principal_dispatch_history')
+    
+    if request.method == 'POST':
+        print("=" * 50)
+        print(f"CANCELLING DISPATCH #{dispatch.id}")
+        print(f"Dispatch weight: {dispatch.total_weight} kg")
+        
+        # Restore waste entries
+        restored_total = 0
+        for item in dispatch.items.all():
+            waste_entry = item.waste_entry
+            old_remaining = waste_entry.remaining_weight
+            restore_weight = item.weight_kg
+            
+            waste_entry.remaining_weight += restore_weight
+            waste_entry.save()
+            
+            restored_total += restore_weight
+            print(f"  Entry {waste_entry.id}: +{restore_weight} kg (was {old_remaining}, now {waste_entry.remaining_weight})")
+        
+        # Update dispatch status
+        dispatch.status = 'cancelled'
+        dispatch.save()
+        
+        # Verify after restore
+        from schools.models import ReportingYear
+        active_year = ReportingYear.objects.filter(school=principal.school, status='active').first()
+        if active_year:
+            total_remaining = WasteEntry.objects.filter(reporting_year=active_year).aggregate(total=Sum('remaining_weight'))['total']
+            print(f"Total remaining after restore: {total_remaining} kg")
+        
+        print(f"✅ Restored {restored_total} kg")
+        print("=" * 50)
+        
+        messages.success(request, f'Dispatch #{dispatch.id} cancelled. {dispatch.total_weight} kg waste restored.')
+        return redirect('principal_dispatch_history')
+    
+    return render(request, 'principal/dispatch_cancel.html', {'dispatch': dispatch})

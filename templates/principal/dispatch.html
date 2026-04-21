@@ -1,0 +1,144 @@
+{% extends "principal/principal_base.html" %}
+
+{% block page_title %}Dispatch to Vendor{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <i class="fa-solid fa-truck me-2 text-success"></i>
+                Dispatch Waste to Vendor
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Available Waste</label>
+                        <div class="alert alert-info">
+                            <strong>{{ total_available }} kg</strong> available for dispatch
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Category-wise Breakdown</label>
+                        <table class="table table-sm">
+                            {% for cat, weight in category_wise.items %}
+                            <tr>
+                                <td>{{ cat }}</td>
+                                <td class="text-end">{{ weight|floatformat:1 }} kg</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="2" class="text-muted">No waste available</td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="table-light fw-semibold">
+                                <td>Total</td>
+                                <td class="text-end">{{ total_available|floatformat:1 }} kg</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Select Vendor <span class="text-danger">*</span></label>
+                        <select name="vendor_id" class="form-select" required>
+                            <option value="">-- Select Vendor --</option>
+                            {% for vendor in vendors %}
+                            <option value="{{ vendor.id }}">{{ vendor.recycler_name }} ({{ vendor.city }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Weight to Dispatch (kg) <span class="text-danger">*</span></label>
+                        <input type="number" name="dispatch_weight" id="dispatch_weight" class="form-control" 
+                               step="0.001" max="{{ total_available }}" required>
+                        <small class="text-muted">Max: {{ total_available }} kg</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Scheduled Pickup Date</label>
+                        <input type="date" name="scheduled_pickup" class="form-control">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Notes</label>
+                        <textarea name="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fa-solid fa-paper-plane"></i> Confirm Dispatch
+                        </button>
+                        <a href="{% url 'principal_dispatch_history' %}" class="btn btn-secondary">
+                            <i class="fa-solid fa-history"></i> View History
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <i class="fa-solid fa-clock-history me-2"></i>
+                Dispatch History
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Vendor</th>
+                            <th>Weight</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dispatch in dispatches %}
+                        <tr>
+                            <td>{{ dispatch.dispatch_date|date:"d M Y" }}</td>
+                            <td>{{ dispatch.vendor.recycler_name|truncatechars:20 }}</td>
+                            <td><strong>{{ dispatch.total_weight|floatformat:1 }}</strong> kg</td>
+                            <td>
+                                {% if dispatch.status == 'dispatched' %}
+                                    <span class="badge bg-warning">Dispatched</span>
+                                {% elif dispatch.status == 'collected' %}
+                                    <span class="badge bg-info">Collected</span>
+                                {% elif dispatch.status == 'completed' %}
+                                    <span class="badge bg-success">Completed</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ dispatch.status }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-3">No dispatches yet</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Show warning if dispatch weight exceeds available
+    const weightInput = document.getElementById('dispatch_weight');
+    const maxWeight = {{ total_available|default:0 }};
+    
+    weightInput.addEventListener('change', function() {
+        if (parseFloat(this.value) > maxWeight) {
+            alert(`Maximum available weight is ${maxWeight} kg`);
+            this.value = maxWeight;
+        }
+    });
+</script>
+
+{% endblock %}

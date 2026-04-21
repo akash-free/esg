@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %} 
 
 {% block title %}Login | Evolvu ESG Platform{% endblock %}
 
@@ -201,22 +202,30 @@
                         <span class="live-dot"></span>
                         <span style="font-size:0.7rem; letter-spacing:0.15em;
                                      color:rgba(255,255,255,0.55); text-transform:uppercase;">
-                            ESG Intelligence Platform
+                            Yujir Planet Competencies
                         </span>
                     </div>
 
                     <!-- Icon -->
-                    <div class="d-flex align-items-center justify-content-center rounded-circle mb-3"
+                    <!-- <div class="d-flex align-items-center justify-content-center rounded-circle mb-3"
                          style="width:68px; height:68px;
                                 background:rgba(255,255,255,0.1);
                                 border:1px solid rgba(255,255,255,0.2);">
                         <i class="fa-solid fa-leaf fa-2x"
                            style="color: var(--esg-green-accent);"></i>
+                    </div> -->
+                    <div class="mb-4">
+                        <img src="{% static 'images/yujir_logo.jfif' %}"
+                            alt="Yujir Planet Competencies"
+                            style="height: 80px; width: auto; 
+                                    border-radius: 8px;
+                                    background: white;
+                                    padding: 6px;">
                     </div>
 
                     <!-- Brand -->
-                    <div class="brand-title mb-1">EVOLVU</div>
-                    <div class="brand-sub mb-4">Sustainability Tracking System</div>
+                    <div class="brand-title mb-1">YCCP</div>
+                    <div class="brand-sub mb-4">Waste Intelligence System</div>
 
                     <!-- Stat pills -->
                     <div class="d-flex flex-wrap gap-2 mb-4">
@@ -263,7 +272,7 @@
                     <span style="font-family:var(--font-display);
                                  font-size:1.4rem; font-weight:900;
                                  color:var(--esg-green-dark);
-                                 letter-spacing:0.2em;">EVOLVU</span>
+                                 letter-spacing:0.2em;">YCCP</span>
                 </div>
 
                 <!-- Heading -->

@@ -6,7 +6,7 @@
 {% block dashboard_content %}
 
 <!-- ========== SCHOOL FILTER (NEW CODE) ========== -->
-<div class="card border-0 shadow-sm mb-4">
+<!-- <div class="card border-0 shadow-sm mb-4">
     <div class="card-body py-3">
         <form method="GET" action="{% url 'superadmin_dashboard' %}" class="row g-3 align-items-center">
             <div class="col-auto">
@@ -14,7 +14,7 @@
             </div>
             <div class="col-md-3">
                 <select name="school_id" class="form-select" onchange="this.form.submit()">
-                    <option value="all" {% if selected_school_id == 'all' %}selected{% endif %}>🏫 All Schools</option>
+                    <option value="all" {% if selected_school_id == 'all' %}selected{% endif %}>All Organisations</option>
                     {% for school in all_schools %}
                     <option value="{{ school.id }}" {% if selected_school_id|stringformat:'s' == school.id|stringformat:'s' %}selected{% endif %}>
                         {{ school.school_name }}
@@ -29,7 +29,49 @@
                 </span>
                 {% else %}
                 <span class="badge bg-secondary">
-                    <i class="fa-solid fa-globe"></i> Showing: All Schools
+                    <i class="fa-solid fa-globe"></i> Showing: All Organisations
+                </span>
+                {% endif %}
+            </div>
+            {% if selected_school_id != 'all' %}
+            <div class="col-auto">
+                <a href="{% url 'superadmin_dashboard' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fa-solid fa-times"></i> Clear Filter
+                </a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div> -->
+
+<!-- ========== SCHOOL FILTER WITH SEARCH ========== -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        <form method="GET" action="{% url 'superadmin_dashboard' %}" class="row g-3 align-items-center" id="filterForm">
+            <div class="col-auto">
+                <label class="fw-semibold mb-0">Filter by School:</label>
+            </div>
+            <div class="col-md-4">
+                <select name="school_id" id="schoolSelect" class="form-select" onchange="this.form.submit()">
+                    <option value="all" {% if selected_school_id == 'all' %}selected{% endif %}>🏛️ All Organisations</option>
+                    {% for school in all_schools %}
+                    <option value="{{ school.id }}" {% if selected_school_id|stringformat:'s' == school.id|stringformat:'s' %}selected{% endif %}>
+                        {{ school.school_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <input type="text" id="schoolSearch" class="form-control" placeholder="🔍 Search school..." autocomplete="off">
+            </div>
+            <div class="col-auto">
+                {% if selected_school %}
+                <span class="badge bg-success">
+                    <i class="fa-solid fa-filter"></i> Showing: {{ selected_school.school_name }}
+                </span>
+                {% else %}
+                <span class="badge bg-secondary">
+                    <i class="fa-solid fa-globe"></i> Showing: All Organisations
                 </span>
                 {% endif %}
             </div>
@@ -173,50 +215,6 @@
         </a>
     </div>
 </div>
-
-<!-- ========== CHARTS ========== -->
-<!-- <div class="row g-3 mb-4">
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="section-title"><i class="fa-solid fa-chart-pie me-2"></i> Waste by Category</div>
-                <a href="{% url 'export_category_excel' %}?{{ request.GET.urlencode }}" 
-                class="btn btn-sm btn-success">
-                    <i class="fa-solid fa-file-excel me-1"></i> Export to Excel
-                </a>
-            </div>
-            <div class="card-body">
-                <canvas id="categoryChart" height="200"></canvas>
-                {% if not category_breakdown %}
-                <div class="text-center py-5 text-secondary">
-                    <i class="fa-solid fa-chart-simple fa-2x mb-2 d-block"></i>
-                    <small>No data yet. Add waste entries to see charts.</small>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
-                <div class="section-title"><i class="fa-solid fa-chart-line me-2"></i> Monthly Trend (Last 6 Months)</div>
-                <a href="{% url 'export_monthly_trend_excel' %}?{{ request.GET.urlencode }}" 
-                   class="btn btn-sm btn-success">
-                    <i class="fa-solid fa-file-excel me-1"></i> Export to Excel
-                </a>
-            </div>
-            <div class="card-body">
-                <canvas id="monthlyChart" height="200"></canvas>
-                {% if not monthly_data %}
-                <div class="text-center py-5 text-secondary">
-                    <i class="fa-solid fa-chart-line fa-2x mb-2 d-block"></i>
-                    <small>No monthly data available.</small>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div> -->
 <div class="row g-3 mb-4">
     <!-- Waste by Category Card -->
     <div class="col-md-6">
@@ -348,7 +346,37 @@
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-    // Pie Chart - Category Breakdown
+    // ========== SCHOOL SEARCH FILTER ==========
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('schoolSearch');
+        const select = document.getElementById('schoolSelect');
+        
+        if (searchInput && select) {
+            const originalOptions = Array.from(select.options);
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                
+                while (select.options.length > 1) {
+                    select.remove(1);
+                }
+                
+                if (searchTerm === '') {
+                    originalOptions.slice(1).forEach(opt => {
+                        select.appendChild(opt.cloneNode(true));
+                    });
+                } else {
+                    originalOptions.slice(1).forEach(opt => {
+                        if (opt.text.toLowerCase().includes(searchTerm)) {
+                            select.appendChild(opt.cloneNode(true));
+                        }
+                    });
+                }
+            });
+        }
+    });
+    
+    // ========== PIE CHART ==========
     {% if category_breakdown %}
     const categoryCtx = document.getElementById('categoryChart').getContext('2d');
     new Chart(categoryCtx, {
@@ -365,7 +393,7 @@
     });
     {% endif %}
     
-    // Bar Chart - Monthly Trend
+    // ========== BAR CHART ==========
     {% if monthly_data %}
     const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
     new Chart(monthlyCtx, {

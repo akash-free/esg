@@ -1,0 +1,138 @@
+{% extends "principal/principal_base.html" %}
+
+{% block page_title %}Dispatch History{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0">Dispatch History</h4>
+        <p class="text-muted small">All waste dispatched to vendors</p>
+    </div>
+    <a href="{% url 'principal_dispatch' %}" class="btn btn-success">
+        <i class="fa-solid fa-plus"></i> New Dispatch
+    </a>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm bg-primary bg-opacity-10">
+            <div class="card-body text-center">
+                <i class="fa-solid fa-chart-line fa-2x text-primary mb-2"></i>
+                <h3 class="mb-0">{{ total_waste|floatformat:0 }} kg</h3>
+                <p class="text-muted small mb-0">Total Waste Collected</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm bg-warning bg-opacity-10">
+            <div class="card-body text-center">
+                <i class="fa-solid fa-truck fa-2x text-warning mb-2"></i>
+                <h3 class="mb-0">{{ total_dispatched|floatformat:0 }} kg</h3>
+                <p class="text-muted small mb-0">Total Dispatched</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm bg-success bg-opacity-10">
+            <div class="card-body text-center">
+                <i class="fa-solid fa-boxes fa-2x text-success mb-2"></i>
+                <h3 class="mb-0">{{ total_remaining|floatformat:0 }} kg</h3>
+                <p class="text-muted small mb-0">Remaining Stock</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dispatch Records Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+        <i class="fa-solid fa-list me-2"></i> Dispatch Records
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Vendor</th>
+                    <th>Weight (kg)</th>
+                    <th>Pickup Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dispatch in dispatches %}
+                <tr class="{% if dispatch.status == 'cancelled' %}table-secondary opacity-50{% endif %}">
+                    <td>{{ dispatch.dispatch_date|date:"d M Y" }}</td>
+                    <td>{{ dispatch.vendor.recycler_name }}</td>
+                    <td><strong>{{ dispatch.total_weight|floatformat:1 }}</strong> kg</td>
+                    <td>{{ dispatch.scheduled_pickup|date:"d M Y"|default:"—" }}</td>
+                    <td>
+                        {% if dispatch.status == 'dispatched' %}
+                            <span class="badge bg-warning">Dispatched</span>
+                        {% elif dispatch.status == 'collected' %}
+                            <span class="badge bg-info">Collected</span>
+                        {% elif dispatch.status == 'completed' %}
+                            <span class="badge bg-success">Completed</span>
+                        {% elif dispatch.status == 'cancelled' %}
+                            <span class="badge bg-secondary">Cancelled</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ dispatch.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if dispatch.status == 'dispatched' %}
+                            <a href="{% url 'principal_dispatch_cancel' dispatch.id %}" 
+                               class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('Cancel this dispatch? {{ dispatch.total_weight }} kg will be restored.')">
+                                <i class="fa-solid fa-ban"></i> Cancel
+                            </a>
+                        {% elif dispatch.status == 'cancelled' %}
+                            <span class="text-muted small">
+                                <i class="fa-solid fa-clock"></i> Cancelled
+                            </span>
+                        {% else %}
+                            <span class="text-muted small">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-secondary">
+                        <i class="fa-solid fa-truck fa-3x mb-3 d-block"></i>
+                        No dispatch records found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Progress Bar -->
+{% if total_waste > 0 %}
+<div class="card border-0 shadow-sm mt-4">
+    <div class="card-header bg-white">
+        <i class="fa-solid fa-chart-simple me-2"></i> Dispatch Progress
+    </div>
+    <div class="card-body">
+        <div class="d-flex justify-content-between mb-1">
+            <span class="small">Dispatched: {{ total_dispatched|floatformat:0 }} kg</span>
+            <span class="small">Remaining: {{ total_remaining|floatformat:0 }} kg</span>
+        </div>
+        <div class="progress" style="height: 20px;">
+            <div class="progress-bar bg-success" role="progressbar" 
+                 style="width: {% widthratio total_dispatched total_waste 100 %}%;" 
+                 aria-valuenow="{{ total_dispatched }}" 
+                 aria-valuemin="0" 
+                 aria-valuemax="{{ total_waste }}">
+                {% widthratio total_dispatched total_waste 100 %}%
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
