@@ -5,46 +5,7 @@
 
 {% block dashboard_content %}
 
-<!-- ========== SCHOOL FILTER (NEW CODE) ========== -->
-<!-- <div class="card border-0 shadow-sm mb-4">
-    <div class="card-body py-3">
-        <form method="GET" action="{% url 'superadmin_dashboard' %}" class="row g-3 align-items-center">
-            <div class="col-auto">
-                <label class="fw-semibold mb-0">Filter by School:</label>
-            </div>
-            <div class="col-md-3">
-                <select name="school_id" class="form-select" onchange="this.form.submit()">
-                    <option value="all" {% if selected_school_id == 'all' %}selected{% endif %}>All Organisations</option>
-                    {% for school in all_schools %}
-                    <option value="{{ school.id }}" {% if selected_school_id|stringformat:'s' == school.id|stringformat:'s' %}selected{% endif %}>
-                        {{ school.school_name }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-auto">
-                {% if selected_school %}
-                <span class="badge bg-success">
-                    <i class="fa-solid fa-filter"></i> Showing: {{ selected_school.school_name }}
-                </span>
-                {% else %}
-                <span class="badge bg-secondary">
-                    <i class="fa-solid fa-globe"></i> Showing: All Organisations
-                </span>
-                {% endif %}
-            </div>
-            {% if selected_school_id != 'all' %}
-            <div class="col-auto">
-                <a href="{% url 'superadmin_dashboard' %}" class="btn btn-sm btn-outline-secondary">
-                    <i class="fa-solid fa-times"></i> Clear Filter
-                </a>
-            </div>
-            {% endif %}
-        </form>
-    </div>
-</div> -->
-
-<!-- ========== SCHOOL FILTER WITH SEARCH ========== -->
+<!-- ========== SCHOOL FILTER WITH SEARCHABLE DROPDOWN ========== -->
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body py-3">
         <form method="GET" action="{% url 'superadmin_dashboard' %}" class="row g-3 align-items-center" id="filterForm">
@@ -52,17 +13,19 @@
                 <label class="fw-semibold mb-0">Filter by School:</label>
             </div>
             <div class="col-md-4">
-                <select name="school_id" id="schoolSelect" class="form-select" onchange="this.form.submit()">
-                    <option value="all" {% if selected_school_id == 'all' %}selected{% endif %}>🏛️ All Organisations</option>
-                    {% for school in all_schools %}
-                    <option value="{{ school.id }}" {% if selected_school_id|stringformat:'s' == school.id|stringformat:'s' %}selected{% endif %}>
-                        {{ school.school_name }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-3">
-                <input type="text" id="schoolSearch" class="form-control" placeholder="🔍 Search school..." autocomplete="off">
+                <div class="position-relative">
+                    <input type="text" id="schoolSearchInput" class="form-control" 
+                           placeholder="🔍 Search & Select School..." 
+                           autocomplete="off"
+                           value="{% if selected_school %}{{ selected_school.school_name }}{% endif %}">
+                    <input type="hidden" name="school_id" id="selectedSchoolId" value="{{ selected_school_id }}">
+                    <div id="schoolDropdown" class="dropdown-list" style="display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 250px; overflow-y: auto; background: white; border: 1px solid #ddd; border-radius: 8px; z-index: 1000; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                        <div class="dropdown-item" data-id="all" data-name="🏛️ All Organisations" style="padding: 10px 15px; cursor: pointer;">🏛️ All Organisations</div>
+                        {% for school in all_schools %}
+                        <div class="dropdown-item" data-id="{{ school.id }}" data-name="{{ school.school_name }}" style="padding: 10px 15px; cursor: pointer;">{{ school.school_name }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
             <div class="col-auto">
                 {% if selected_school %}
@@ -85,6 +48,96 @@
         </form>
     </div>
 </div>
+
+<style>
+    .dropdown-item:hover {
+        background-color: #e8f5e9;
+    }
+    .dropdown-item.selected {
+        background-color: #c8e6c9;
+        font-weight: 500;
+    }
+</style>
+
+<script>
+    // School Search Dropdown Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('schoolSearchInput');
+        const dropdown = document.getElementById('schoolDropdown');
+        const hiddenId = document.getElementById('selectedSchoolId');
+        const filterForm = document.getElementById('filterForm');
+        
+        let allItems = [];
+        
+        // Store all dropdown items
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            allItems.push({
+                element: item,
+                id: item.dataset.id,
+                name: item.dataset.name.toLowerCase()
+            });
+        });
+        
+        // Show/hide dropdown on focus/blur
+        searchInput.addEventListener('focus', function() {
+            dropdown.style.display = 'block';
+            filterDropdown('');
+        });
+        
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+        
+        // Filter dropdown on input
+        searchInput.addEventListener('input', function() {
+            filterDropdown(this.value.toLowerCase());
+        });
+        
+        function filterDropdown(searchTerm) {
+            let hasVisible = false;
+            allItems.forEach(item => {
+                if (searchTerm === '' || item.name.includes(searchTerm)) {
+                    item.element.style.display = 'block';
+                    hasVisible = true;
+                } else {
+                    item.element.style.display = 'none';
+                }
+            });
+            dropdown.style.display = hasVisible ? 'block' : 'none';
+        }
+        
+        // Select item
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const name = this.dataset.name;
+                
+                searchInput.value = name;
+                hiddenId.value = id;
+                dropdown.style.display = 'none';
+                
+                // Submit form
+                filterForm.submit();
+            });
+        });
+        
+        // Highlight selected item
+        function highlightSelected() {
+            const selectedId = hiddenId.value;
+            document.querySelectorAll('.dropdown-item').forEach(item => {
+                if (item.dataset.id == selectedId) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+        highlightSelected();
+    });
+</script>
 <!-- ============================================= -->
 
 <!-- ========== 6 KPI CARDS ========== -->
@@ -107,7 +160,7 @@
     </div>
     <div class="col-6 col-md-4 col-lg-2">
         <div class="card card-hover border-0 shadow-sm h-100">
-            <div class="card-body">
+            <div class-card-body>
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <div class="kpi-value">{{ total_diverted|floatformat:0 }}</div>
@@ -215,6 +268,8 @@
         </a>
     </div>
 </div>
+
+<!-- ========== CHARTS ========== -->
 <div class="row g-3 mb-4">
     <!-- Waste by Category Card -->
     <div class="col-md-6">
@@ -262,7 +317,6 @@
 </div>
 
 <!-- ========== RECENT WASTE ENTRIES TABLE ========== -->
-
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div class="section-title"><i class="fa-solid fa-clock me-2"></i> Recent Waste Entries</div>
     <a href="{% url 'export_waste_excel' %}?{{ request.GET.urlencode }}" 
@@ -316,10 +370,10 @@
             </div>
             <div class="card-body">
                 <table class="table table-borderless mb-0">
-                    <tr><td class="ps-0">Total Schools</td><td class="fw-semibold">{{ total_schools }}</td></tr>
-                    <tr><td class="ps-0">Active Schools</td><td class="fw-semibold">{{ active_schools }}</td></tr>
-                    <tr><td class="ps-0">Total Recyclers</td><td class="fw-semibold">{{ total_recyclers }}</td></tr>
-                    <tr><td class="ps-0">Active Recyclers</td><td class="fw-semibold">{{ active_recyclers }}</td></tr>
+                    <tr><td class="ps-0">Total Schools</td><td class="fw-semibold">{{ total_schools }}</td> </tr>
+                    <tr><td class="ps-0">Active Schools</td><td class="fw-semibold">{{ active_schools }}</td> </tr>
+                    <tr><td class="ps-0">Total Recyclers</td><td class="fw-semibold">{{ total_recyclers }}</td> </tr>
+                    <tr><td class="ps-0">Active Recyclers</td><td class="fw-semibold">{{ active_recyclers }}</td> </tr>
                 </table>
             </div>
         </div>
@@ -331,10 +385,10 @@
             </div>
             <div class="card-body">
                 <table class="table table-borderless mb-0">
-                    <tr><td class="ps-0">Total Users</td><td class="fw-semibold">{{ total_users }}</td></tr>
-                    <tr><td class="ps-0">Total Reporting Years</td><td class="fw-semibold">{{ total_reporting_years }}</td></tr>
-                    <tr><td class="ps-0">Active Reporting Years</td><td class="fw-semibold">{{ active_reporting_years }}</td></tr>
-                    <tr><td class="ps-0">Total Waste Entries</td><td class="fw-semibold">{{ recent_entries|length }}</td></tr>
+                    <tr><td class="ps-0">Total Users</td><td class="fw-semibold">{{ total_users }}</td> </tr>
+                    <tr><td class="ps-0">Total Reporting Years</td><td class="fw-semibold">{{ total_reporting_years }}</td> </tr>
+                    <tr><td class="ps-0">Active Reporting Years</td><td class="fw-semibold">{{ active_reporting_years }}</td> </tr>
+                    <tr><td class="ps-0">Total Waste Entries</td><td class="fw-semibold">{{ recent_entries|length }}</td> </tr>
                 </table>
             </div>
         </div>
@@ -346,36 +400,6 @@
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-    // ========== SCHOOL SEARCH FILTER ==========
-    document.addEventListener('DOMContentLoaded', function() {
-        const searchInput = document.getElementById('schoolSearch');
-        const select = document.getElementById('schoolSelect');
-        
-        if (searchInput && select) {
-            const originalOptions = Array.from(select.options);
-            
-            searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase().trim();
-                
-                while (select.options.length > 1) {
-                    select.remove(1);
-                }
-                
-                if (searchTerm === '') {
-                    originalOptions.slice(1).forEach(opt => {
-                        select.appendChild(opt.cloneNode(true));
-                    });
-                } else {
-                    originalOptions.slice(1).forEach(opt => {
-                        if (opt.text.toLowerCase().includes(searchTerm)) {
-                            select.appendChild(opt.cloneNode(true));
-                        }
-                    });
-                }
-            });
-        }
-    });
-    
     // ========== PIE CHART ==========
     {% if category_breakdown %}
     const categoryCtx = document.getElementById('categoryChart').getContext('2d');
